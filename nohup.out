@@ -1,0 +1,790 @@
+Total rows      : 61509
+Target percent  : 100%
+Stage percent   : 20%
+Concurrency     : 10
+Total stages    : 5
+\n=== Stage 1: rows 0 - 12301 ===
+[W4] row=1 status=invalid_url brand= conf=0.0
+[W2] row=3 status=success brand=Top Coffee conf=0.99
+[W1] row=0 status=success brand=- conf=0.89
+[W10] row=9 status=success brand=- conf=0.89
+[W5] row=8 status=success brand=- conf=0.94
+[W4] row=2 status=success brand=- conf=0.89
+[W6] row=4 status=success brand=Makmur Jaya Coffee Roaster conf=0.99
+[W8] row=7 status=success brand=Sakha Coffee conf=0.99
+[W3] row=5 status=success brand=- conf=0.89
+[W3] row=18 status=invalid_url brand= conf=0.0
+[W9] row=10 status=success brand=ASVATA conf=0.99
+[W7] row=6 status=success brand=- conf=0.89
+[W2] row=11 status=success brand=Sakha Coffee conf=0.99
+[W5] row=14 status=success brand=Sakha Coffee conf=0.99
+[W10] row=13 status=success brand=Kopi Kopi conf=0.99
+[W4] row=15 status=success brand=Top Coffee conf=0.99
+[W1] row=12 status=success brand=- conf=0.89
+[W3] row=19 status=success brand=Koffiku conf=0.99
+[W9] row=20 status=success brand=Kopi Tubruk Gadjah conf=0.99
+[W9] row=28 status=invalid_url brand= conf=0.0
+[W6] row=16 status=success brand=Sakha Coffee conf=0.99
+[W8] row=17 status=success brand=Koffiku conf=0.99
+[W7] row=21 status=success brand=- conf=0.89
+[W7] row=32 status=invalid_url brand= conf=0.0
+[W7] row=33 status=invalid_url brand= conf=0.0
+[W2] row=22 status=success brand=Sakha Coffee conf=0.99
+[W10] row=24 status=success brand=Portacaba conf=0.99
+[W4] row=25 status=success brand=Kopikina conf=0.99
+[W5] row=23 status=success brand=Kedara Coffee conf=0.99
+[W1] row=26 status=success brand=- conf=0.89
+[W1] row=39 status=invalid_url brand= conf=0.0
+[W3] row=27 status=success brand=RENCONG SAKTI conf=0.99
+[W9] row=29 status=success brand=- conf=0.89
+[W8] row=31 status=success brand=- conf=0.89
+[W6] row=30 status=success brand=Top Coffee conf=0.99
+[W7] row=34 status=success brand=- conf=0.89
+[W2] row=35 status=success brand=Kopi Simbah conf=0.99
+[W5] row=38 status=success brand=- conf=0.94
+[W10] row=36 status=success brand=Kopi Gayo conf=0.99
+[W4] row=37 status=success brand=- conf=0.94
+[W1] row=40 status=success brand=- conf=0.89
+[W8] row=43 status=success brand=Kel's Coffee conf=0.99
+[W6] row=44 status=success brand=Sakha Coffee conf=0.99
+[W9] row=42 status=success brand=Koffiku conf=0.99
+[W7] row=45 status=success brand=- conf=0.89
+[W2] row=46 status=success brand=Rangkiang Kaum conf=0.99
+[W10] row=48 status=success brand=Rumah Tani conf=0.99
+[W5] row=47 status=success brand=ASVATA conf=0.99
+[W4] row=49 status=success brand=Amstirdam conf=0.99
+[W1] row=50 status=success brand=Hatana Coffee conf=0.99
+[W8] row=51 status=success brand=ASVATA conf=0.99
+[W6] row=52 status=success brand=Common Grounds conf=0.99
+[W9] row=53 status=success brand=- conf=0.89
+[W3] row=41 status=success brand=G-MAX conf=0.99
+[W7] row=54 status=success brand=Kopi Robusta TEMANGGUNG conf=0.99
+[W2] row=55 status=success brand=Chek Hup conf=0.99
+[W10] row=56 status=success brand=- conf=0.94
+[W1] row=59 status=success brand=Sakha Coffee conf=0.99
+[W8] row=60 status=success brand=Sakha Coffee conf=0.99
+[W4] row=58 status=success brand=- conf=0.89
+[W6] row=61 status=success brand=- conf=0.89
+[W9] row=62 status=success brand=- conf=0.89
+[W3] row=63 status=success brand=KAPAL API conf=0.99
+[W7] row=64 status=success brand=Senja Mataram conf=0.99
+[W2] row=65 status=success brand=Amstirdam conf=0.99
+[W10] row=66 status=success brand=- conf=0.89
+[W1] row=67 status=success brand=Aming Coffee conf=0.99
+[W8] row=68 status=success brand=- conf=0.89
+[W5] row=57 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W4] row=69 status=success brand=Arjuno conf=0.99
+[W4] row=79 status=invalid_url brand= conf=0.0
+[W6] row=70 status=success brand=- conf=0.89
+[W9] row=71 status=success brand=- conf=0.94
+[W3] row=72 status=success brand=- conf=0.94
+[W7] row=73 status=success brand=Pak Trisna conf=0.99
+[W7] row=84 status=invalid_url brand= conf=0.0
+[W2] row=74 status=success brand=- conf=0.89
+[W10] row=75 status=success brand=- conf=0.89
+[W1] row=76 status=success brand=- conf=0.89
+[W8] row=77 status=success brand=Robusta conf=0.99
+[W6] row=81 status=success brand=Sakha Coffee conf=0.99
+[W9] row=82 status=success brand=- conf=0.89
+[W4] row=80 status=success brand=Hatana Coffee conf=0.99
+[W5] row=78 status=success brand=- conf=0.89
+[W3] row=83 status=success brand=Delta Coffee Co. conf=0.99
+[W7] row=85 status=success brand=CR.1 Original Coffee conf=0.99
+[W10] row=87 status=success brand=Tuang Coffee conf=0.99
+[W2] row=86 status=success brand=- conf=0.89
+[W9] row=91 status=success brand=Hatana Coffee conf=0.99
+[W6] row=90 status=success brand=Chek Hup conf=0.99
+[W5] row=93 status=success brand=Top Coffee conf=0.99
+[W5] row=100 status=invalid_url brand= conf=0.0
+[W1] row=88 status=success brand=- conf=0.94
+[W7] row=95 status=success brand=9-Tō Coffee conf=0.99
+[W3] row=94 status=success brand=Chek Hup conf=0.99
+[W3] row=104 status=invalid_url brand= conf=0.0
+[W8] row=89 status=success brand=Top Coffee conf=0.99
+[W8] row=106 status=success brand=Gendheng Manteb conf=0.99
+[W6] row=99 status=success brand=Hatana Coffee conf=0.99
+[W9] row=98 status=success brand=- conf=0.94
+[W3] row=105 status=success brand=Satu Satu conf=0.99
+[W10] row=96 status=success brand=- conf=0.89
+[W2] row=97 status=success brand=Kopi Bubuk 1001 conf=0.99
+[W1] row=102 status=success brand=- conf=0.94
+[W1] row=113 status=invalid_url brand= conf=0.0
+[W5] row=101 status=success brand=- conf=0.89
+[W4] row=92 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W7] row=103 status=success brand=Arabika conf=0.99
+[W8] row=107 status=success brand=- conf=0.89
+[W9] row=109 status=success brand=- conf=0.89
+[W6] row=108 status=success brand=Oriental Kopi conf=0.99
+[W10] row=111 status=success brand=armina daily conf=0.99
+[W3] row=110 status=success brand=- conf=0.89
+[W1] row=114 status=success brand=- conf=0.89
+[W2] row=112 status=success brand=Sakha Coffee conf=0.99
+[W5] row=115 status=success brand=- conf=0.89
+[W4] row=116 status=success brand=Coffee Tree Penang conf=0.99
+[W6] row=120 status=success brand=Cap Oplet conf=0.99
+[W8] row=118 status=success brand=Kopisidikalang conf=0.99
+[W9] row=119 status=success brand=- conf=0.89
+[W1] row=123 status=success brand=Amiralab conf=0.99
+[W3] row=122 status=success brand=- conf=0.94
+[W3] row=131 status=invalid_url brand= conf=0.0
+[W10] row=121 status=success brand=- conf=0.89
+[W2] row=124 status=success brand=- conf=0.94
+[W2] row=134 status=invalid_url brand= conf=0.0
+[W7] row=117 status=success brand=DXN conf=0.99
+[W4] row=126 status=success brand=Votrro Coffee conf=0.99
+[W5] row=125 status=success brand=Uang Emas conf=0.99
+[W6] row=127 status=success brand=Gendheng Manteb conf=0.99
+[W8] row=128 status=success brand=Uang Emas conf=0.99
+[W10] row=133 status=success brand=Top Coffee conf=0.99
+[W1] row=130 status=success brand=Herd Coffee Roaster conf=0.99
+[W9] row=129 status=success brand=Robusta conf=0.99
+[W2] row=135 status=success brand=- conf=0.94
+[W7] row=136 status=success brand=- conf=0.94
+[W4] row=137 status=success brand=Chek Hup conf=0.99
+[W5] row=138 status=success brand=- conf=0.89
+[W6] row=139 status=success brand=Sakha Coffee conf=0.99
+[W10] row=141 status=success brand=- conf=0.94
+[W1] row=142 status=success brand=Paralel conf=0.99
+[W9] row=143 status=success brand=- conf=0.89
+[W7] row=145 status=success brand=- conf=0.89
+[W2] row=144 status=success brand=RENCONG SAKTI conf=0.99
+[W4] row=146 status=success brand=- conf=0.89
+[W3] row=132 status=success brand=Red Koffiee conf=0.99
+[W5] row=147 status=success brand=AA conf=0.99
+[W6] row=148 status=success brand=Robusta conf=0.99
+[W10] row=149 status=success brand=- conf=0.89
+[W1] row=150 status=success brand=RENCONG SAKTI conf=0.99
+[W9] row=151 status=success brand=- conf=0.89
+[W8] row=140 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W2] row=153 status=success brand=RENCONG SAKTI conf=0.99
+[W7] row=152 status=success brand=- conf=0.89
+[W4] row=154 status=success brand=- conf=0.89
+[W3] row=155 status=success brand=Hayati conf=0.99
+[W3] row=165 status=invalid_url brand= conf=0.0
+[W3] row=166 status=invalid_url brand= conf=0.0
+[W6] row=157 status=success brand=Portacaba conf=0.99
+[W5] row=156 status=success brand=- conf=0.89
+[W1] row=159 status=success brand=Nod. conf=0.99
+[W10] row=158 status=success brand=Oriental Kopi conf=0.99
+[W9] row=160 status=success brand=Amstirdam conf=0.99
+[W2] row=162 status=success brand=- conf=0.89
+[W7] row=163 status=success brand=- conf=0.89
+[W8] row=161 status=success brand=ASVATA conf=0.99
+[W4] row=164 status=success brand=Kopi O conf=0.99
+[W5] row=169 status=success brand=Tuang Coffee conf=0.99
+[W3] row=167 status=success brand=SARIMAS conf=0.99
+[W6] row=168 status=success brand=Sakha Coffee conf=0.99
+[W1] row=170 status=success brand=Koffie Slb conf=0.99
+[W8] row=175 status=success brand=- conf=0.89
+[W10] row=171 status=success brand=TRADISI conf=0.99
+[W5] row=177 status=success brand=Top Coffee conf=0.99
+[W2] row=173 status=success brand=Klangenan conf=0.99
+[W7] row=174 status=success brand=Kopi Semendo conf=0.99
+[W9] row=172 status=success brand=9-Tō Coffee conf=0.99
+[W6] row=179 status=success brand=- conf=0.89
+[W4] row=176 status=success brand=- conf=0.89
+[W3] row=178 status=success brand=- conf=0.94
+[W5] row=183 status=success brand=Robusta conf=0.99
+[W1] row=180 status=success brand=- conf=0.94
+[W6] row=187 status=success brand=Irenk Beans conf=0.99
+[W8] row=181 status=success brand=Kopisidikalang conf=0.99
+[W2] row=184 status=success brand=Garaga Coffee conf=0.99
+[W9] row=186 status=success brand=sopic coffee roastery conf=0.99
+[W3] row=189 status=success brand=- conf=0.94
+[W4] row=188 status=success brand=Herd Coffee Roaster conf=0.99
+[W1] row=191 status=success brand=Koffiku conf=0.99
+[W5] row=190 status=success brand=- conf=0.94
+[W7] row=185 status=success brand=Amstirdam conf=0.99
+[W2] row=194 status=success brand=- conf=0.89
+[W9] row=195 status=success brand=- conf=0.89
+[W10] row=182 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W10] row=203 status=invalid_url brand= conf=0.0
+[W6] row=192 status=success brand=- conf=0.89
+[W3] row=196 status=success brand=- conf=0.89
+[W8] row=193 status=success brand=- conf=0.89
+[W4] row=197 status=success brand=NOD conf=0.99
+[W5] row=199 status=success brand=Herd Coffee Roaster conf=0.99
+[W7] row=200 status=success brand=Top Coffee conf=0.99
+[W1] row=198 status=success brand=Woodlane Roastery conf=0.99
+[W2] row=201 status=success brand=- conf=0.94
+[W9] row=202 status=success brand=Amstirdam conf=0.99
+[W10] row=204 status=success brand=Awi conf=0.99
+[W6] row=205 status=success brand=- conf=0.89
+[W3] row=206 status=success brand=- conf=0.89
+[W3] row=216 status=invalid_url brand= conf=0.0
+[W8] row=207 status=success brand=ASVATA conf=0.99
+[W4] row=208 status=success brand=Sakha Coffee conf=0.99
+[W5] row=209 status=success brand=Sakha Coffee conf=0.99
+[W7] row=210 status=success brand=Sakha Coffee conf=0.99
+[W1] row=211 status=success brand=ASVATA conf=0.99
+[W10] row=214 status=success brand=Coffee Suko conf=0.99
+[W10] row=223 status=invalid_url brand= conf=0.0
+[W10] row=224 status=invalid_url brand= conf=0.0
+[W9] row=213 status=success brand=- conf=0.89
+[W4] row=219 status=success brand=Paralel conf=0.99
+[W2] row=212 status=success brand=Tuang Coffee conf=0.99
+[W2] row=228 status=invalid_url brand= conf=0.0
+[W8] row=218 status=success brand=HAMZ COFFE conf=0.99
+[W6] row=215 status=success brand=Top Coffee conf=0.99
+[W3] row=217 status=success brand=Votrro Coffee conf=0.99
+[W7] row=221 status=success brand=- conf=0.89
+[W5] row=220 status=success brand=RENCONG SAKTI conf=0.99
+[W1] row=222 status=success brand=Kopi Racik Singa Emas conf=0.99
+[W10] row=225 status=success brand=- conf=0.94
+[W4] row=227 status=success brand=Cap Gunung Slamet conf=0.99
+[W5] row=234 status=success brand=Awi conf=0.99
+[W8] row=230 status=success brand=- conf=0.89
+[W9] row=226 status=success brand=- conf=0.89
+[W1] row=235 status=success brand=- conf=0.89
+[W3] row=232 status=success brand=BERUANG MAS conf=0.99
+[W6] row=231 status=success brand=Kopi Juara conf=0.99
+[W2] row=229 status=success brand=RENCONG SAKTI conf=0.99
+[W10] row=236 status=success brand=- conf=0.89
+[W7] row=233 status=success brand=Koffiku conf=0.99
+[W3] row=242 status=success brand=Top Coffee conf=0.99
+[W6] row=243 status=success brand=KOPI KITA JAVAMAHE conf=0.99
+[W9] row=240 status=success brand=Sakha Coffee conf=0.99
+[W1] row=241 status=success brand=Senja Mataram conf=0.99
+[W4] row=237 status=success brand=Robusta conf=0.99
+[W8] row=239 status=success brand=Gendheng Manteb conf=0.99
+[W2] row=244 status=success brand=Kopi Keranjang conf=0.99
+[W5] row=238 status=success brand=Amstirdam conf=0.99
+[W10] row=245 status=success brand=- conf=0.89
+[W7] row=246 status=success brand=- conf=0.89
+[W3] row=247 status=success brand=Kopi Kopi conf=0.99
+[W9] row=249 status=success brand=- conf=0.94
+[W1] row=250 status=success brand=Top Coffee conf=0.99
+[W6] row=248 status=success brand=- conf=0.89
+[W2] row=253 status=success brand=Ceria conf=0.99
+[W8] row=252 status=success brand=KEEP ON GOING conf=0.99
+[W4] row=251 status=success brand=- conf=0.89
+[W5] row=254 status=success brand=- conf=0.93
+[W10] row=255 status=success brand=SARIMAS conf=0.99
+[W7] row=256 status=success brand=- conf=0.89
+[W1] row=259 status=success brand=Sakha Coffee conf=0.99
+[W5] row=264 status=success brand=Paralel conf=0.99
+[W4] row=263 status=success brand=- conf=0.89
+[W3] row=257 status=success brand=Hatana Coffee conf=0.99
+[W2] row=261 status=success brand=Tagetto Coffee Roastery conf=0.99
+[W6] row=260 status=success brand=Amstirdam conf=0.99
+[W9] row=258 status=success brand=- conf=0.94
+[W9] row=273 status=invalid_url brand= conf=0.0
+[W9] row=274 status=invalid_url brand= conf=0.0
+[W7] row=266 status=success brand=Herd Coffee Roaster conf=0.99
+[W8] row=262 status=success brand=- conf=0.89
+[W5] row=268 status=success brand=- conf=0.89
+[W2] row=271 status=success brand=Kopi Bali Banyuatis conf=0.99
+[W4] row=269 status=success brand=- conf=0.94
+[W1] row=267 status=success brand=Herd Coffee Roaster conf=0.99
+[W6] row=272 status=success brand=KOPI ANJIS conf=0.99
+[W6] row=282 status=invalid_url brand= conf=0.0
+[W6] row=283 status=invalid_url brand= conf=0.0
+[W9] row=275 status=success brand=Coffee Tree Penang conf=0.99
+[W3] row=270 status=success brand=Kenal conf=0.99
+[W10] row=265 status=success brand=Hayati conf=0.99
+[W10] row=287 status=invalid_url brand= conf=0.0
+[W7] row=276 status=success brand=- conf=0.89
+[W8] row=277 status=success brand=Chek Hup conf=0.99
+[W5] row=278 status=success brand=Kafein conf=0.99
+[W2] row=279 status=success brand=- conf=0.94
+[W1] row=281 status=success brand=ASVATA conf=0.99
+[W1] row=293 status=invalid_url brand= conf=0.0
+[W9] row=285 status=success brand=- conf=0.89
+[W3] row=286 status=success brand=- conf=0.89
+[W10] row=288 status=success brand=The Cold Crafters conf=0.99
+[W6] row=284 status=success brand=RENCONG SAKTI conf=0.99
+[W7] row=289 status=success brand=Kopi Nganu conf=0.99
+[W8] row=290 status=success brand=AA conf=0.99
+[W5] row=291 status=success brand=ASVATA conf=0.99
+[W2] row=292 status=success brand=- conf=0.89
+[W1] row=294 status=success brand=Slimsure conf=0.99
+[W3] row=296 status=success brand=Top Coffee conf=0.99
+[W10] row=297 status=success brand=Top Coffee conf=0.99
+[W4] row=280 status=success brand=JPS conf=0.99
+[W4] row=306 status=invalid_url brand= conf=0.0
+[W7] row=299 status=success brand=KEMUDI conf=0.99
+[W6] row=298 status=success brand=Kopi Robusta TEMANGGUNG conf=0.99
+[W8] row=300 status=success brand=- conf=0.89
+[W5] row=301 status=success brand=Sakha Coffee conf=0.99
+[W2] row=302 status=success brand=Mega Remeng conf=0.99
+[W2] row=312 status=invalid_url brand= conf=0.0
+[W1] row=303 status=success brand=- conf=0.89
+[W3] row=304 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W10] row=305 status=success brand=Sakha Coffee conf=0.99
+[W4] row=307 status=success brand=- conf=0.89
+[W7] row=308 status=success brand=- conf=0.89
+[W6] row=309 status=success brand=Sakha Coffee conf=0.99
+[W9] row=295 status=success brand=Oriental Kopi conf=0.99
+[W8] row=310 status=success brand=- conf=0.89
+[W2] row=313 status=success brand=RENCONG SAKTI conf=0.99
+[W1] row=314 status=success brand=- conf=0.89
+[W3] row=315 status=success brand=Awi conf=0.99
+[W10] row=316 status=success brand=Koffiku conf=0.99
+[W4] row=317 status=success brand=Robusta conf=0.99
+[W7] row=318 status=success brand=G-MAX conf=0.99
+[W6] row=319 status=success brand=One Refinery conf=0.99
+[W9] row=320 status=success brand=- conf=0.89
+[W8] row=321 status=success brand=- conf=0.89
+[W2] row=322 status=success brand=Coffee Sae conf=0.99
+[W1] row=323 status=success brand=Gentong Coffee conf=0.99
+[W5] row=311 status=success brand=DXN conf=0.99
+[W5] row=333 status=invalid_url brand= conf=0.0
+[W3] row=324 status=success brand=- conf=0.89
+[W7] row=327 status=success brand=armina daily conf=0.99
+[W8] row=330 status=success brand=- conf=0.89
+[W4] row=326 status=success brand=RMG coffee conf=0.99
+[W6] row=328 status=success brand=- conf=0.89
+[W2] row=331 status=success brand=Kopi Bubuk Waris conf=0.99
+[W1] row=332 status=success brand=- conf=0.89
+[W5] row=334 status=success brand=Tagetto Coffee Roastery conf=0.99
+[W3] row=335 status=success brand=- conf=0.89
+[W7] row=336 status=success brand=- conf=0.89
+[W10] row=325 status=success brand=S Gold Coffee conf=0.99
+[W9] row=329 status=success brand=DXN conf=0.99
+[W8] row=337 status=success brand=Chek Hup conf=0.99
+[W4] row=338 status=success brand=- conf=0.89
+[W6] row=339 status=success brand=Amstirdam conf=0.99
+[W1] row=341 status=success brand=Top Coffee conf=0.99
+[W5] row=342 status=success brand=Kopi Granat conf=0.99
+[W3] row=343 status=success brand=Nod. conf=0.99
+[W10] row=345 status=success brand=Portacaba conf=0.99
+[W7] row=344 status=success brand=INDOCAFE conf=0.99
+[W4] row=348 status=success brand=tjap88kopi conf=0.99
+[W4] row=355 status=invalid_url brand= conf=0.0
+[W9] row=346 status=success brand=Kopi Nganu conf=0.99
+[W1] row=350 status=success brand=Liong Bulan conf=0.99
+[W6] row=349 status=success brand=- conf=0.89
+[W5] row=351 status=success brand=- conf=0.89
+[W2] row=340 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W10] row=353 status=success brand=tjap88kopi conf=0.99
+[W7] row=354 status=success brand=Herd Coffee Roaster conf=0.99
+[W3] row=352 status=success brand=Koeslans Coffee Roastery conf=0.99
+[W4] row=356 status=success brand=- conf=0.89
+[W1] row=358 status=success brand=- conf=0.89
+[W9] row=357 status=success brand=Delta COFFEE ROASTER conf=0.99
+[W6] row=359 status=success brand=Dynamic Coffee conf=0.99
+[W8] row=347 status=success brand=Oriental conf=0.99
+[W2] row=361 status=success brand=- conf=0.89
+[W10] row=362 status=success brand=Chek Hup conf=0.99
+[W3] row=364 status=success brand=Liong Bulan conf=0.99
+[W4] row=365 status=success brand=Kopi Kopi conf=0.99
+[W9] row=367 status=success brand=- conf=0.89
+[W9] row=374 status=invalid_url brand= conf=0.0
+[W1] row=366 status=success brand=KEEP ON GOING conf=0.99
+[W6] row=368 status=success brand=Uang Emas conf=0.99
+[W8] row=369 status=success brand=Sakha Coffee conf=0.99
+[W2] row=370 status=success brand=Sakha Coffee conf=0.99
+[W10] row=371 status=success brand=SEDUH.IN conf=0.99
+[W5] row=360 status=success brand=9-Tō Coffee conf=0.99
+[W3] row=372 status=success brand=Kopi Tubruk Gadjah conf=0.99
+[W4] row=373 status=success brand=Irenk Beans conf=0.99
+[W4] row=383 status=invalid_url brand= conf=0.0
+[W9] row=375 status=success brand=Roastology conf=0.99
+[W7] row=363 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W6] row=377 status=success brand=- conf=0.89
+[W8] row=378 status=success brand=SANTINO conf=0.99
+[W1] row=376 status=success brand=Dynamic Coffee conf=0.99
+[W2] row=379 status=success brand=- conf=0.89
+[W10] row=380 status=success brand=Awi conf=0.99
+[W10] row=391 status=invalid_url brand= conf=0.0
+[W5] row=381 status=success brand=Tuang Coffee conf=0.99
+[W3] row=382 status=success brand=- conf=0.94
+[W9] row=385 status=success brand=- conf=0.89
+[W4] row=384 status=success brand=SARIMAS conf=0.99
+[W8] row=388 status=success brand=Pikopi conf=0.99
+[W7] row=386 status=success brand=Luce Coffee conf=0.99
+[W6] row=387 status=success brand=Kopi Cap Teko conf=0.99
+[W1] row=389 status=success brand=EnoCofe conf=0.99
+[W2] row=390 status=success brand=Maxpresso conf=0.99
+[W10] row=392 status=success brand=Sakha Coffee conf=0.99
+[W3] row=394 status=success brand=- conf=0.89
+[W5] row=393 status=success brand=- conf=0.89
+[W8] row=397 status=success brand=Sakha Coffee conf=0.99
+[W4] row=396 status=success brand=- conf=0.89
+[W7] row=398 status=success brand=KOPI BUBUK LIMA JARI conf=0.99
+[W1] row=400 status=success brand=Top Coffee conf=0.99
+[W6] row=399 status=success brand=- conf=0.89
+[W2] row=401 status=success brand=Cafe21 conf=0.94
+[W10] row=402 status=success brand=Sakha Coffee conf=0.99
+[W3] row=403 status=success brand=Maxpresso conf=0.99
+[W5] row=404 status=success brand=- conf=0.89
+[W4] row=406 status=success brand=KOPI KITA JAVAMAHE conf=0.99
+[W8] row=405 status=success brand=Kopi Bubuk conf=0.99
+[W1] row=408 status=success brand=- conf=0.89
+[W7] row=407 status=success brand=Kenal conf=0.99
+[W2] row=410 status=success brand=Sakha Coffee conf=0.99
+[W9] row=395 status=success brand=Maxpresso conf=0.99
+[W10] row=411 status=success brand=- conf=0.89
+[W6] row=409 status=success brand=- conf=0.94
+[W3] row=412 status=success brand=ASVATA conf=0.99
+[W5] row=413 status=success brand=Uang Emas conf=0.99
+[W4] row=414 status=success brand=BERUANG MAS conf=0.99
+[W1] row=416 status=success brand=- conf=0.89
+[W8] row=415 status=success brand=sopic coffee roastery conf=0.99
+[W7] row=417 status=success brand=Madany conf=0.99
+[W7] row=427 status=invalid_url brand= conf=0.0
+[W2] row=418 status=success brand=Tuang Coffee conf=0.99
+[W10] row=420 status=success brand=Sakha Coffee conf=0.99
+[W9] row=419 status=success brand=Awi conf=0.99
+[W6] row=421 status=success brand=WORCAS conf=0.99
+[W3] row=422 status=success brand=- conf=0.89
+[W5] row=423 status=success brand=Top Coffee conf=0.99
+[W4] row=424 status=success brand=G-MAX conf=0.99
+[W1] row=425 status=success brand=- conf=0.94
+[W8] row=426 status=success brand=KOPI ANJIS conf=0.99
+[W7] row=428 status=success brand=- conf=0.89
+[W9] row=431 status=success brand=ASVATA conf=0.99
+[W3] row=433 status=success brand=- conf=0.89
+[W3] row=440 status=invalid_url brand= conf=0.0
+[W6] row=432 status=success brand=Cap Gunung Slamet conf=0.99
+[W2] row=429 status=success brand=PANDAWA conf=0.99
+[W10] row=430 status=success brand=Chek Hup conf=0.99
+[W5] row=434 status=success brand=- conf=0.89
+[W4] row=435 status=success brand=- conf=0.89
+[W1] row=436 status=success brand=sopic coffee roastery conf=0.99
+[W8] row=437 status=success brand=Liong Bulan conf=0.99
+[W9] row=439 status=success brand=Awi conf=0.99
+[W3] row=441 status=success brand=- conf=0.94
+[W6] row=442 status=success brand=CAP 54 conf=0.94
+[W2] row=443 status=success brand=- conf=0.89
+[W10] row=444 status=success brand=- conf=0.89
+[W5] row=445 status=success brand=ANOACO ROASTERY conf=0.99
+[W8] row=448 status=success brand=Satu Satu conf=0.99
+[W9] row=449 status=success brand=Maxim conf=0.99
+[W3] row=450 status=success brand=Kopi Bubuk 54 conf=0.99
+[W7] row=438 status=success brand=Golden Black Coffee conf=0.99
+[W2] row=452 status=success brand=Kopi Cap Teko conf=0.99
+[W6] row=451 status=success brand=- conf=0.89
+[W5] row=454 status=success brand=Awi conf=0.99
+[W5] row=461 status=invalid_url brand= conf=0.0
+[W10] row=453 status=success brand=Bogor Coffee Catang Malang conf=0.94
+[W4] row=446 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W1] row=447 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W9] row=456 status=success brand=- conf=0.89
+[W8] row=455 status=success brand=- conf=0.89
+[W3] row=457 status=success brand=Cafe21 conf=0.99
+[W7] row=458 status=success brand=- conf=0.89
+[W7] row=469 status=invalid_url brand= conf=0.0
+[W10] row=463 status=success brand=Sakha Coffee conf=0.99
+[W5] row=462 status=success brand=- conf=0.89
+[W6] row=460 status=success brand=- conf=0.94
+[W2] row=459 status=success brand=G-MAX conf=0.99
+[W4] row=464 status=success brand=- conf=0.89
+[W1] row=465 status=success brand=Coffeenatics conf=0.99
+[W8] row=467 status=success brand=MIRACLE COFFEE conf=0.99
+[W9] row=466 status=success brand=- conf=0.89
+[W3] row=468 status=success brand=Sakha Coffee conf=0.99
+[W7] row=470 status=success brand=Lunaraverse conf=0.99
+[W2] row=474 status=success brand=sopic coffee roastery conf=0.99
+[W5] row=472 status=success brand=- conf=0.89
+[W4] row=475 status=success brand=Lunaraverse conf=0.99
+[W6] row=473 status=success brand=G-MAX conf=0.99
+[W8] row=477 status=success brand=- conf=0.94
+[W3] row=479 status=success brand=UGC UMI GREEN COFFEE conf=0.99
+[W9] row=478 status=success brand=- conf=0.89
+[W1] row=476 status=success brand=Maxpresso conf=0.99
+[W10] row=471 status=success brand=- conf=0.89
+[W2] row=481 status=success brand=- conf=0.89
+[W5] row=482 status=success brand=G-MAX conf=0.99
+[W6] row=484 status=success brand=- conf=0.89
+[W8] row=485 status=success brand=- conf=0.89
+[W10] row=489 status=success brand=Miracle conf=0.99
+[W9] row=487 status=success brand=sopic coffee roastery conf=0.99
+[W1] row=488 status=success brand=Robusta conf=0.99
+[W4] row=483 status=success brand=G-MAX conf=0.99
+[W7] row=480 status=success brand=Oriental Kopi conf=0.99
+[W2] row=490 status=success brand=Top Coffee conf=0.99
+[W5] row=491 status=success brand=Cap Oplet conf=0.99
+[W6] row=492 status=success brand=- conf=0.89
+[W3] row=486 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W8] row=493 status=success brand=Will&Co. conf=0.99
+[W10] row=494 status=success brand=- conf=0.94
+[W9] row=495 status=success brand=- conf=0.89
+[W1] row=496 status=success brand=Kopi Bubuk conf=0.99
+[W1] row=506 status=invalid_url brand= conf=0.0
+[W4] row=497 status=success brand=Kopi Bubuk 54 conf=0.99
+[W2] row=499 status=success brand=Luce Coffee conf=0.99
+[W5] row=500 status=success brand=KOPI ANJIS conf=0.99
+[W6] row=501 status=success brand=CAP 54 conf=0.94
+[W3] row=502 status=success brand=Cordyco conf=0.99
+[W8] row=503 status=success brand=- conf=0.89
+[W10] row=504 status=success brand=illy conf=0.99
+[W1] row=507 status=success brand=Top Coffee conf=0.99
+[W9] row=505 status=success brand=Kopi Cap Teko conf=0.99
+[W7] row=498 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W4] row=508 status=success brand=Kopi Tubruk Gadjah conf=0.99
+[W2] row=509 status=success brand=- conf=0.89
+[W5] row=510 status=success brand=Kopi Kopi conf=0.99
+[W6] row=511 status=success brand=RMG coffee conf=0.99
+[W3] row=512 status=success brand=- conf=0.89
+[W8] row=513 status=success brand=Sakha Coffee conf=0.99
+[W10] row=514 status=success brand=AA conf=0.99
+[W1] row=515 status=success brand=RMG coffee conf=0.99
+[W7] row=517 status=success brand=tjap88kopi conf=0.99
+[W9] row=516 status=success brand=Rangkiang Kaum conf=0.99
+[W2] row=519 status=success brand=- conf=0.89
+[W4] row=518 status=success brand=- conf=0.94
+[W5] row=520 status=success brand=ASIANG conf=0.99
+[W6] row=521 status=success brand=ASVATA conf=0.99
+[W3] row=522 status=success brand=AA conf=0.99
+[W3] row=532 status=invalid_url brand= conf=0.0
+[W10] row=524 status=success brand=- conf=0.89
+[W8] row=523 status=success brand=CR.1 Original Coffee conf=0.99
+[W1] row=525 status=success brand=Sakha Coffee conf=0.99
+[W5] row=530 status=success brand=- conf=0.89
+[W5] row=537 status=invalid_url brand= conf=0.0
+[W4] row=529 status=success brand=KOPI LELET conf=0.99
+[W7] row=526 status=success brand=sopic coffee roastery conf=0.99
+[W7] row=540 status=invalid_url brand= conf=0.0
+[W2] row=528 status=success brand=tjap88kopi conf=0.99
+[W3] row=533 status=success brand=Second Step Coffee conf=0.99
+[W3] row=543 status=invalid_url brand= conf=0.0
+[W10] row=534 status=success brand=Coffee Suko conf=0.99
+[W8] row=535 status=success brand=illy conf=0.99
+[W1] row=536 status=success brand=Irenk Beans conf=0.99
+[W5] row=538 status=success brand=BESKABEAN COFFEE ROASTER conf=0.99
+[W4] row=539 status=success brand=Awi conf=0.99
+[W4] row=549 status=invalid_url brand= conf=0.0
+[W7] row=541 status=success brand=Sakha Coffee conf=0.99
+[W2] row=542 status=success brand=Second Step Coffee conf=0.99
+[W9] row=527 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W9] row=553 status=invalid_url brand= conf=0.0
+[W6] row=531 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W3] row=544 status=success brand=- conf=0.89
+[W10] row=545 status=success brand=- conf=0.89
+[W8] row=546 status=success brand=- conf=0.89
+[W1] row=547 status=success brand=RENCONG SAKTI conf=0.99
+[W5] row=548 status=success brand=V-MAX conf=0.99
+[W2] row=552 status=success brand=- conf=0.89
+[W7] row=551 status=success brand=- conf=0.89
+[W7] row=562 status=invalid_url brand= conf=0.0
+[W4] row=550 status=success brand=Liong Bulan conf=0.99
+[W6] row=555 status=success brand=- conf=0.89
+[W3] row=556 status=success brand=Fry Roast conf=0.99
+[W9] row=554 status=success brand=Koffie Slb conf=0.99
+[W8] row=558 status=success brand=- conf=0.89
+[W8] row=568 status=invalid_url brand= conf=0.0
+[W1] row=559 status=success brand=One Refinery conf=0.99
+[W10] row=557 status=success brand=- conf=0.94
+[W5] row=560 status=success brand=RMG coffee conf=0.99
+[W2] row=561 status=success brand=Gading Mas conf=0.99
+[W7] row=563 status=success brand=- conf=0.94
+[W4] row=564 status=success brand=- conf=0.89
+[W6] row=565 status=success brand=TRADISI conf=0.99
+[W9] row=567 status=success brand=Rangkiang Kaum conf=0.99
+[W8] row=569 status=success brand=- conf=0.94
+[W1] row=570 status=success brand=Anomali Coffee conf=0.99
+[W3] row=566 status=success brand=- conf=0.89
+[W5] row=572 status=success brand=Portacaba conf=0.99
+[W7] row=574 status=success brand=Selatan Baru conf=0.99
+[W4] row=575 status=success brand=- conf=0.89
+[W9] row=577 status=success brand=- conf=0.89
+[W1] row=579 status=success brand=- conf=0.89
+[W2] row=573 status=success brand=Irenk Beans conf=0.99
+[W6] row=576 status=success brand=Nod. conf=0.99
+[W3] row=580 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W8] row=578 status=success brand=Portacaba conf=0.99
+[W10] row=571 status=success brand=G-MAX conf=0.99
+[W5] row=581 status=success brand=Salu Sopai conf=0.99
+[W5] row=591 status=invalid_url brand= conf=0.0
+[W5] row=592 status=invalid_url brand= conf=0.0
+[W7] row=582 status=success brand=- conf=0.89
+[W7] row=594 status=invalid_url brand= conf=0.0
+[W8] row=589 status=success brand=- conf=0.89
+[W2] row=586 status=success brand=JOYINBAG conf=0.99
+[W1] row=585 status=success brand=- conf=0.89
+[W1] row=598 status=invalid_url brand= conf=0.0
+[W6] row=587 status=success brand=- conf=0.94
+[W9] row=584 status=success brand=Fry Roast conf=0.99
+[W4] row=583 status=success brand=- conf=0.89
+[W3] row=588 status=success brand=Cap Kupu Kupu conf=0.99
+[W5] row=593 status=success brand=Cap Oplet conf=0.99
+[W7] row=595 status=success brand=- conf=0.89
+[W8] row=596 status=success brand=Tugu Buaya conf=0.99
+[W9] row=601 status=success brand=- conf=0.89
+[W2] row=597 status=success brand=- conf=0.89
+[W4] row=602 status=success brand=KOPI HITAM conf=0.99
+[W1] row=599 status=success brand=Kopi Bubuk 54 conf=0.99
+[W3] row=603 status=success brand=Hatana Coffee conf=0.99
+[W10] row=590 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W5] row=604 status=success brand=ASVATA conf=0.99
+[W8] row=606 status=success brand=KOPI DIJENE conf=0.99
+[W4] row=609 status=success brand=Top Coffee conf=0.99
+[W2] row=608 status=success brand=COOL-VITA conf=0.99
+[W2] row=616 status=invalid_url brand= conf=0.0
+[W9] row=607 status=success brand=G-MAX conf=0.99
+[W1] row=610 status=success brand=- conf=0.89
+[W3] row=611 status=success brand=- conf=0.89
+[W6] row=600 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W5] row=613 status=success brand=- conf=0.89
+[W7] row=605 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W7] row=623 status=invalid_url brand= conf=0.0
+[W8] row=614 status=success brand=Liong Bulan conf=0.99
+[W9] row=618 status=success brand=- conf=0.89
+[W4] row=615 status=success brand=- conf=0.94
+[W1] row=619 status=success brand=- conf=0.89
+[W1] row=628 status=invalid_url brand= conf=0.0
+[W1] row=629 status=invalid_url brand= conf=0.0
+[W3] row=620 status=success brand=- conf=0.89
+[W6] row=621 status=success brand=Kopi Bubuk conf=0.99
+[W5] row=622 status=success brand=- conf=0.89
+[W10] row=612 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W8] row=625 status=success brand=AA conf=0.99
+[W7] row=624 status=success brand=Kopi Semendo conf=0.99
+[W4] row=627 status=success brand=Kopi Bubuk 54 conf=0.99
+[W1] row=630 status=success brand=Check Hup conf=0.99
+[W2] row=617 status=success brand=Maxim conf=0.99
+[W3] row=631 status=success brand=- conf=0.89
+[W6] row=632 status=success brand=- conf=0.89
+[W6] row=641 status=invalid_url brand= conf=0.0
+[W5] row=633 status=success brand=Hay Coffee conf=0.99
+[W8] row=635 status=success brand=Portacaba conf=0.99
+[W10] row=634 status=success brand=Agro Pulo conf=0.99
+[W7] row=636 status=success brand=Votrro Coffee conf=0.99
+[W7] row=646 status=invalid_url brand= conf=0.0
+[W4] row=637 status=success brand=Whitebeard conf=0.99
+[W1] row=638 status=success brand=Coffee Suko conf=0.99
+[W2] row=639 status=success brand=Kopi Toraja conf=0.99
+[W6] row=642 status=success brand=Mokhabika conf=0.99
+[W9] row=626 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W9] row=652 status=invalid_url brand= conf=0.0
+[W3] row=640 status=success brand=Rumah Tani conf=0.99
+[W5] row=643 status=success brand=Luce Coffee conf=0.99
+[W8] row=644 status=success brand=sopic coffee roastery conf=0.99
+[W7] row=647 status=success brand=Top Coffee conf=0.99
+[W10] row=645 status=success brand=illy conf=0.99
+[W4] row=648 status=success brand=- conf=0.89
+[W1] row=649 status=success brand=- conf=0.89
+[W2] row=650 status=success brand=Top Coffee conf=0.99
+[W9] row=653 status=success brand=- conf=0.89
+[W3] row=654 status=success brand=Piko conf=0.99
+[W6] row=651 status=success brand=Anomali Coffee conf=0.99
+[W6] row=664 status=invalid_url brand= conf=0.0
+[W8] row=656 status=success brand=ARIA KOPI conf=0.99
+[W2] row=661 status=success brand=ASVATA conf=0.99
+[W6] row=665 status=success brand=- conf=0.89
+[W9] row=662 status=success brand=Genesis Coffee conf=0.99
+[W9] row=669 status=invalid_url brand= conf=0.0
+[W7] row=657 status=success brand=Oriental Kopi conf=0.99
+[W4] row=659 status=success brand=Smoking Barrels Craft Coffee conf=0.94
+[W1] row=660 status=success brand=Hayati conf=0.99
+[W3] row=663 status=success brand=Lokalate conf=0.99
+[W10] row=658 status=success brand=Sakha Coffee conf=0.99
+[W10] row=675 status=invalid_url brand= conf=0.0
+[W10] row=676 status=invalid_url brand= conf=0.0
+[W8] row=666 status=success brand=BERUANG MAS conf=0.99
+[W5] row=655 status=success brand=HPAI conf=0.99
+[W2] row=667 status=success brand=sopic coffee roastery conf=0.99
+[W6] row=668 status=success brand=- conf=0.89
+[W9] row=670 status=success brand=Uang Emas conf=0.99
+[W9] row=682 status=invalid_url brand= conf=0.0
+[W4] row=672 status=success brand=Portacaba conf=0.99
+[W7] row=671 status=success brand=- conf=0.89
+[W7] row=685 status=invalid_url brand= conf=0.0
+[W1] row=673 status=success brand=TORABIKA conf=0.99
+[W10] row=677 status=success brand=- conf=0.89
+[W3] row=674 status=success brand=- conf=0.94
+[W8] row=678 status=success brand=Sematjam conf=0.99
+[W5] row=679 status=success brand=Radimax conf=0.99
+[W2] row=680 status=success brand=- conf=0.89
+[W6] row=681 status=success brand=Portacaba conf=0.99
+[W6] row=693 status=invalid_url brand= conf=0.0
+[W1] row=687 status=success brand=Kopi Tubruk Gadjah conf=0.99
+[W3] row=689 status=success brand=- conf=0.94
+[W3] row=696 status=invalid_url brand= conf=0.0
+[W4] row=684 status=success brand=- conf=0.89
+[W7] row=686 status=success brand=Sakha Coffee conf=0.99
+[W2] row=692 status=success brand=Djavas Coffee conf=0.99
+[W5] row=691 status=success brand=Herd Coffee Roaster conf=0.99
+[W6] row=694 status=success brand=EXCELSO conf=0.99
+[W1] row=695 status=success brand=Gadjah Tubruk conf=0.99
+[W7] row=699 status=success brand=Maxim conf=0.99
+[W3] row=697 status=success brand=Cokro Kresno conf=0.99
+[W4] row=698 status=success brand=Haco conf=0.99
+[W2] row=700 status=success brand=SLB conf=0.99
+[W5] row=701 status=success brand=G-MAX conf=0.99
+[W5] row=708 status=invalid_url brand= conf=0.0
+[W9] row=683 status=success brand=DXN conf=0.99
+[W9] row=710 status=invalid_url brand= conf=0.0
+[W10] row=688 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W6] row=702 status=success brand=- conf=0.89
+[W8] row=690 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W4] row=706 status=success brand=- conf=0.89
+[W3] row=705 status=success brand=- conf=0.89
+[W1] row=703 status=success brand=Massa Kok Tong conf=0.99
+[W7] row=704 status=success brand=Klangenan conf=0.99
+[W6] row=713 status=success brand=Rebbe Coffee conf=0.99
+[W5] row=709 status=success brand=ASVATA conf=0.99
+[W10] row=712 status=success brand=- conf=0.89
+[W9] row=711 status=success brand=Shop \x26 MISC (v2019.04) conf=0.89
+[W2] row=707 status=success brand=- conf=0.89
+[W8] row=714 status=success brand=Senja Mataram conf=0.99
+[W8] row=724 status=invalid_url brand= conf=0.0
+[W3] row=716 status=success brand=- conf=0.89
+[W1] row=717 status=success brand=Oriental Kopi conf=0.99
+[W9] row=722 status=success brand=Angkring conf=0.99
+[W9] row=728 status=invalid_url brand= conf=0.0
+[W7] row=718 status=success brand=KOPI ANJIS conf=0.99
+[W2] row=723 status=success brand=Kopi Giras conf=0.99
+[W6] row=719 status=success brand=- conf=0.89
+[W8] row=725 status=success brand=Chek Hup conf=0.99
+[W5] row=720 status=success brand=Dynamic Coffee conf=0.99
+[W5] row=734 status=invalid_url brand= conf=0.0
+[W4] row=715 status=success brand=Liong Bulan conf=0.99
+[W10] row=721 status=success brand=King Kong conf=0.99
+[W3] row=726 status=success brand=- conf=0.89
+[W3] row=738 status=invalid_url brand= conf=0.0
+[W1] row=727 status=success brand=Sarijan Coffee conf=0.99
+[W9] row=729 status=success brand=- conf=0.89
+[W2] row=731 status=success brand=Sakha Coffee conf=0.99
+[W5] row=735 status=success brand=Paralel conf=0.99
+[W10] row=737 status=success brand=illy conf=0.99
+[W6] row=732 status=success brand=JARDIN conf=0.99
+[W7] row=730 status=success brand=GEMAS conf=0.99
+[W8] row=733 status=success brand=Second Step Coffee conf=0.99
+[W4] row=736 status=success brand=- conf=0.89
+[W1] row=740 status=success brand=- conf=0.89
+[W10] row=744 status=success brand=- conf=0.89
+[W10] row=750 status=invalid_url brand= conf=0.0
+[W8] row=747 status=success brand=- conf=0.89
+[W8] row=752 status=invalid_url brand= conf=0.0
+[W9] row=741 status=success brand=- conf=0.89
+[W9] row=754 status=invalid_url brand= conf=0.0
+[W4] row=748 status=success brand=Awi conf=0.99
+[W4] row=756 status=invalid_url brand= conf=0.0
+[W4] row=757 status=invalid_url brand= conf=0.0
+[W2] row=742 status=success brand=Kopi Semendo conf=0.99
+[W3] row=739 status=success brand=- conf=0.89
+[W7] row=746 status=success brand=Sakha Coffee conf=0.99
+[W7] row=761 status=invalid_url brand= conf=0.0
+[W7] row=762 status=invalid_url brand= conf=0.0
+[W5] row=743 status=success brand=Kopi Bubuk Waris conf=0.99
+[W5] row=764 status=invalid_url brand= conf=0.0
+[W1] row=749 status=success brand=Sentra Kopi conf=0.99
+[W1] row=766 status=invalid_url brand= conf=0.0
+[W1] row=767 status=invalid_url brand= conf=0.0
+[W10] row=751 status=success brand=- conf=0.89
+[W8] row=753 status=success brand=- conf=0.89
+[W9] row=755 status=success brand=- conf=0.94
+[W2] row=759 status=success brand=DAPOER IBOE conf=0.99
+[W4] row=758 status=success brand=Rebbe Coffee conf=0.99
+[W7] row=763 status=success brand=- conf=0.89
+[W3] row=760 status=success brand=Malotong conf=0.99
+[W6] row=745 status=success brand=Liong Bulan conf=0.99
+[W5] row=765 status=success brand=- conf=0.94
+[W5] row=777 status=invalid_url brand= conf=0.0
+[W1] row=768 status=success brand=- conf=0.89
+[W9] row=771 status=success brand=Awi conf=0.99
+[W10] row=769 status=success brand=- conf=0.89
+[W4] row=773 status=success brand=- conf=0.89
+[W2] row=772 status=success brand=- conf=0.94
+[W7] row=774 status=success brand=Top Coffee conf=0.99
+[W8] row=770 status=success brand=Paralel conf=0.99
+[W3] row=775 status=success brand=Piko conf=0.99
+[W6] row=776 status=success brand=Puntang Coffee conf=0.99
+[W5] row=778 status=success brand=- conf=0.89
+[W1] row=779 status=success brand=Houdvan conf=0.99
+[W9] row=780 status=success brand=- conf=0.94
+[W10] row=781 status=success brand=ANOACO ROASTERY conf=0.99
+[W2] row=783 status=success brand=- conf=0.89
+[W2] row=792 status=invalid_url brand= conf=0.0
