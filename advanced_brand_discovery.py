@@ -9,6 +9,10 @@ import clickhouse_connect
 from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from rapidfuzz import process, fuzz
+import json
+from openai import OpenAI
+import re
+import jellyfish
 
 # Konfigurasi Logging Standar
 logging.basicConfig(
@@ -162,87 +166,210 @@ class TextProcessor:
                     if len(ngram_stats[bg]["samples"]) < 3:
                         ngram_stats[bg]["samples"].append(sample_data)
 
-        # 4. Format hasil
-        results = []
-        for ngram, stats in ngram_stats.items():
-            if stats["count"] >= MIN_OCCURRENCES_TO_EVALUATE:
-                
-                samples_str = " || ".join([
-                    f"ID: {s['ItemId']} | Name: {s['ListingName']} | Link: {s['ListingLink']}"
-                    for s in stats["samples"]
-                ])
-                
-                results.append({
-                    "Candidate Name": ngram.title(),
-                    "Occurrences": stats["count"],
-                    "Total GMV": stats["total_gmv"],
-                    "Example Items": samples_str
-                })
+        logger.info(f"Pengekstrakan selesai: {len(ngram_stats)} raw kandidat diperoleh.")
+        return ngram_stats
+
+    def format_samples(self, samples: list) -> str:
+        return " || ".join([
+            f"ID: {s.get('ItemId', '')} | Name: {s.get('ListingName', '')} | Link: {s.get('ListingLink', '')}"
+            for s in samples
+        ])
+
+class SemanticBrandMatcher:
+    """Mesin Pengecek Sinonim Menggunakan Phonetic dan Skeleton Fuzz."""
+    def __init__(self, master_brands: List[str]):
+        # Simpan form asli
+        self.master_brands = [str(b).strip() for b in master_brands]
+        # Simpan form skeleton
+        self.master_skeletons = [self._get_skeleton(b) for b in self.master_brands]
+        # Simpan form fonetik
+        self.master_phonetics = [self._get_phonetic(b) for b in self.master_brands]
+        logger.info(f"SemanticBrandMatcher initialized dengan {len(self.master_brands)} Master Brand.")
+
+    def _get_skeleton(self, text: str) -> str:
+        # Buang semua yang bukan alfabet atau angka, jadikan string tancap tanpa spasi
+        return re.sub(r'[^a-z0-9]', '', str(text).lower())
+
+    def _get_phonetic(self, text: str) -> str:
+        # Membuang spasi dkk lalu ambil kode phonetic sound (Metaphone Code)
+        skel = self._get_skeleton(text)
+        return jellyfish.metaphone(skel)
+
+    def match(self, candidate: str) -> Tuple[str, str, float]:
+        """
+        Mencari padanan synonym semantic. 
+        Return format: (Status, Master Brand Name, Score)
+        """
+        cand_lower = str(candidate).lower()
+        cand_skel = self._get_skeleton(candidate)
+        cand_phonetic = self._get_phonetic(candidate)
         
-        logger.info(f"Pengekstrakan selesai: {len(results)} kandidat diperoleh.")
-        return results
+        # -- Lapis 1: Exact Match (Sangat Akurat 100%)
+        for master in self.master_brands:
+            if cand_lower == master.lower():
+                return "Existing Brand", master, 100.0
 
-class FuzzyMatcher:
-    """Validator menggunakan algoritma Levenshtein (RapidFuzz)."""
-    def __init__(self, master_brands: Set[str]):
-        self.master_brands = list(master_brands)
-        logger.info(f"FuzzyMatcher initialized dengan {len(self.master_brands)} Master Brand.")
+        best_skeleton_score = 0.0
+        best_master_match = ""
 
-    def evaluate_candidate(self, candidate_name: str) -> Tuple[str, str, float]:
-        """Bandingkan kandidat ke Master Brand."""
-        if not self.master_brands:
-            return "New Brand Discovery", "", 0.0
+        # -- Lapis 2 & 3: Iterasi Master untuk Phonetic dan Skeleton Fuzz
+        for idx, master in enumerate(self.master_brands):
+            m_skel = self.master_skeletons[idx]
+            m_phonetic = self.master_phonetics[idx]
 
-        match = process.extractOne(
-            query=candidate_name,
-            choices=self.master_brands,
-            scorer=fuzz.WRatio
+            # Lapis 2: Rule Phonetic Identik => Lolos mutlak
+            if cand_phonetic != "" and cand_phonetic == m_phonetic:
+                return "Auto-Matched (Synonym)", master, 99.0  # Skor semu batas kepercayaaan tertinggi
+            
+            # Cari Skeleton Fuzz terbaik (Lapis 3)
+            sim_score = fuzz.ratio(cand_skel, m_skel)
+            if sim_score > best_skeleton_score:
+                best_skeleton_score = sim_score
+                best_master_match = master
+
+        # -- Lapis 3: Evaluasi Skeleton Fuzz (Batas: 95.0%)
+        # Angka ini harus ditekan ekstrim, karena teks tak ada spasi, 95% = wajib nyaris sama total hurufnya.
+        if best_skeleton_score >= 95.0:
+             return "Auto-Matched (Synonym)", best_master_match, best_skeleton_score
+
+        # Gagal Lapis 1, 2, dan 3 => Ditolak
+        return "New Brand Discovery", "", best_skeleton_score
+
+class LLMValidator:
+    """Filter akhir menggunakan OpenRouter LLM untuk membuang term generik/daerah yang tersisa."""
+    def __init__(self):
+        self.api_key = os.getenv("OPENROUTER_API_KEY")
+        self.client = OpenAI(
+            base_url="https://openrouter.ai/api/v1",
+            api_key=self.api_key if self.api_key else "dummy_key",
         )
+        self.model = os.getenv("LLM_MODEL", "openai/gpt-5-nano")
         
-        if match:
-            best_match_str, best_match_score, _ = match
-            if best_match_score >= FUZZY_MATCH_THRESHOLD:
-                return "Auto-Matched (Typo)", best_match_str, best_match_score
+    def filter_brands(self, candidates: List[str]) -> Set[str]:
+        if not self.api_key:
+            logger.warning("OPENROUTER_API_KEY tidak disetel di .env. Melewati proses LLM, asumsi semua terverifikasi.")
+            return set(candidates)
+            
+        logger.info(f"Mengirim {len(candidates)} kandidat ke API LLM OpenRouter ({self.model})...")
+        
+        prompt = f"""Tugasmu adalah menganalisis daftar kandidat frasa/kalimat dari e-commerce produk kopi:
+HAPUS semua frasa yang berisi/mengandung kata-kata umum, deskripsi kemasan, kualitas barang, merk palsu/receh, jenis minuman generik, dan nama daerah geografis asli (sepeerti temanggung, aceh, sidikalang, gayo, dsb) YANG BUKAN bagian hak paten brand.
+Kembalikan HANYA JSON array dari string yang BENAR-BENAR merupakan Merek (Brand Name) tulen. Jangan pakai formatting markdown.
 
-        return "New Brand Discovery", "", match[1] if match else 0.0
+Daftar Kandidat:
+{json.dumps(candidates)}"""
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are a Brand Name extraction system. Only output a raw JSON array of valid brand names."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.0,
+                timeout=120.0 # Batal otomatis jika nyangkut lebih dari 120 detik
+            )
+            raw_response = response.choices[0].message.content.strip()
+            
+            # Sanitasi JSON jikalau AI terobsesi mengirim format markdown markdown
+            if raw_response.startswith("```json"):
+                raw_response = raw_response[7:-3].strip()
+            elif raw_response.startswith("```"):
+                raw_response = raw_response[3:-3].strip()
+                
+            valid_brands = json.loads(raw_response)
+            
+            # Jika JSON tidak array
+            if not isinstance(valid_brands, list):
+                logger.error("LLM tidak mengembalikan JSON array. Mengabaikan validasi...")
+                return set(candidates)
+                
+            return set([str(b).strip().lower() for b in valid_brands])
+        except Exception as e:
+            logger.error(f"Error pada OpenRouter API: {e}")
+            return set(candidates)
 
 class PipelineManager:
     """Manajer pengontrol eksekusi utama."""
     def __init__(self):
-        self.db_connector = DatabaseConnector()
+        self.db = DatabaseConnector()
         self.text_processor = TextProcessor()
-        self.matcher = None
+        self.semantic_matcher = None
 
     def run(self, output_file: str = "advanced_brand_discovery_result.xlsx"):
         logger.info("=== Memulai Advanced Brand Auto-Discovery Pipeline ===")
         
-        # 1. Start Connection
-        self.db_connector.connect()
-        master_brands = self.db_connector.fetch_master_brands()
-        self.matcher = FuzzyMatcher(master_brands)
-        df_unbranded = self.db_connector.fetch_unbranded_items()
-        self.db_connector.close()
+        # 1. Tarik Data
+        self.db.connect()
+        master_brands = self.db.fetch_master_brands()
+        self.semantic_matcher = SemanticBrandMatcher(master_brands)
         
-        if df_unbranded.empty:
-            logger.info("Tidak ada data 'No Brand' yang perlu dioleh. Pipeline berhenti.")
-            return
-
-        # 2. Process NLP
-        candidates = self.text_processor.discover_ngrams(df_unbranded)
+        unbranded_items = self.db.fetch_unbranded_items()
+        self.db.close()
         
-        # 3. Fuzzy Matching Validations
-        logger.info("Validasi Kandidat menggunakan RapidFuzz terhadap Master Brands...")
-        for candidate in candidates:
-            status, matched_str, score = self.matcher.evaluate_candidate(candidate["Candidate Name"])
-            candidate["Status"] = status
-            candidate["Suggested Exact Brand"] = matched_str
-            candidate["Match Score (%)"] = round(score, 2)
+        # 2. Extract TF-IDF
+        ngram_stats = self.text_processor.discover_ngrams(unbranded_items)
+        
+        # 3. Validasi Semantic & Phonetic per Kandidat
+        logger.info("Validasi Kandidat menggunakan Semantic Phonetic Matcher terhadap Master Brands...")
+        candidates = []
+        for cand_name, data in ngram_stats.items():
+            if data["count"] < MIN_OCCURRENCES_TO_EVALUATE:
+                continue
+                
+            status, exact_brand, score = self.semantic_matcher.match(cand_name)
+            
+            candidate = {
+                "Candidate Name": cand_name.title(),
+                "Occurrences": data["count"],
+                "Total GMV": data["total_gmv"],
+                "Status": status,
+                "Suggested Exact Brand": exact_brand,
+                "Match Score (%)": round(score, 2),
+                "Example Items": self.text_processor.format_samples(data["samples"])
+            }
             
             # Jika di match sempurna 100%, status rubah
             if score == 100.0:
                 candidate["Status"] = "Existing Brand"
+            
+            candidates.append(candidate)
                 
-        # 4. Finalizing
+        # 4. Validasi LLM Eksekusi Terakhir
+        new_brands_index = [i for i, c in enumerate(candidates) if c["Status"] == "New Brand Discovery"]
+        logger.info(f"Ditemukan {len(new_brands_index)} kandidat dengan status 'New Brand Discovery'.")
+
+        if new_brands_index:
+            llm_validator = LLMValidator()
+            new_brands_names = [candidates[i]["Candidate Name"] for i in new_brands_index]
+            
+            verified_brands = set()
+            BATCH_SIZE = 2000 # Batch menembak OpenRouter (Dinaikkan dari 100 ke 2000 untuk efisiensi kecepatan)
+            for i in range(0, len(new_brands_names), BATCH_SIZE):
+                batch = new_brands_names[i : i+BATCH_SIZE]
+                accepted_batch = llm_validator.filter_brands(batch)
+                verified_brands.update(accepted_batch)
+                
+            # Update status original candidates
+            for idx in new_brands_index:
+                cand_name = candidates[idx]["Candidate Name"].lower()
+                
+                # Cek apakah dia diloloskan (ada di verified brands)
+                # Gunakan semantic skel tipis in case JSON reformat string by LLM
+                cand_skel = re.sub(r'[^a-z0-9]', '', cand_name)
+                match_found = False
+                for v in verified_brands:
+                    v_skel = re.sub(r'[^a-z0-9]', '', v)
+                    if cand_skel == v_skel or cand_skel in v_skel or v_skel in cand_skel:
+                        match_found = True
+                        break
+                
+                if match_found:
+                    candidates[idx]["Status"] = "LLM Verified Brand"
+                else:
+                    candidates[idx]["Status"] = "Rejected by LLM (Generic/Region)"
+                
+        # 5. Finalizing Excel
         result_df = pd.DataFrame(candidates)
         
         # Urutkan berdasarkan total kontribusi GMV tertinggi
