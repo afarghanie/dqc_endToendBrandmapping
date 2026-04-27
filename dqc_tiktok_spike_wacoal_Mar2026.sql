@@ -1,13 +1,11 @@
 -- ============================================================
--- DQC: Spike Detection & DELETE — REUSABLE
+-- DQC: Spike Detection & DELETE — dm_Wacoal
 --
--- REUSABLE: ubah nilai di blok params bawah ini
---   - table_name         : nama tabel (dm_Mandom, dm_EtreParfums, dll.)
---   - channel            : channel target
---   - l3title            : filter L3Title, isi '' untuk semua L3Title
---   - detection_*        : window lebar untuk deteksi stale & baseline
---   - target_*           : tanggal spike yang mau di-preview / DELETE
---   - spike_jump_mult    : threshold multiplier untuk SPIKE_JUMP (default 5x)
+-- Filter ShopName: 'wacoal_id' dan 'Indonesia Wacoal Official Shop'
+-- Channel       : Tiktok
+-- Detection     : 2026-03-16 s/d 2026-03-30
+-- Target (spike): 2026-03-23 (ubah sesuai kebutuhan)
+-- spike_jump_mult: 5x
 --
 -- Flag:
 --   [A] STALE_FROZEN_DAILY    : DailySalesCount frozen dalam detection window
@@ -23,15 +21,14 @@
 WITH params AS (
     -- ⬇️  UBAH DI SINI
     SELECT
-        'dm_Mandom'          AS table_name,
-        toDate('2026-01-19') AS detection_from,    -- window LEBAR (awal)
-        toDate('2026-02-02') AS detection_to,      -- window LEBAR (akhir)
-        toDate('2026-01-26') AS target_from,       -- tanggal spike yang mau di-cek / DELETE
-        toDate('2026-01-26') AS target_to,         -- tanggal spike yang mau di-cek / DELETE
-        'Shopee'             AS channel,
-        'Hair Tonic'      AS l3title,           -- filter L3Title, isi '' untuk semua
+        'dm_Wacoal'          AS table_name,
+        toDate('2026-03-28') AS detection_from,    -- window LEBAR (awal)
+        toDate('2026-04-15') AS detection_to,      -- window LEBAR (akhir)
+        toDate('2026-04-11') AS target_from,       -- tanggal spike yang mau di-cek / DELETE
+        toDate('2026-04-11') AS target_to,         -- tanggal spike yang mau di-cek / DELETE
+        'Tiktok x Tokopedia'             AS channel,
         2                    AS min_days,           -- min hari detection window untuk stale
-        10                   AS min_count,          -- min DailySalesCount agar signifikan
+        10                    AS min_count,          -- min DailySalesCount agar signifikan
         5                    AS spike_jump_mult     -- [D] flag kalau daily target > N x avg baseline
 ),
 
@@ -49,20 +46,20 @@ spike_stats AS (
             AND COUNT(DISTINCT e.ScrapDate) >= (SELECT min_days FROM params),
             1, 0
         ) AS is_frozen_count
-    FROM default.dm_Mandom e, params p
+    FROM default.dm_Wacoal e, params p
     WHERE e.Channel   = p.channel
       AND e.ScrapDate BETWEEN p.detection_from AND p.detection_to
       AND e.DailySalesCount > 0
-      AND (p.l3title = '' OR e.L3Title = p.l3title)
+      AND e.ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
     GROUP BY e.ItemId, e.Channel
 ),
 
 -- First seen per item (untuk cek item baru)
 item_history AS (
     SELECT e.ItemId, e.Channel, MIN(e.ScrapDate) AS first_seen_ever
-    FROM default.dm_Mandom e, params p
+    FROM default.dm_Wacoal e, params p
     WHERE e.Channel = p.channel
-      AND (p.l3title = '' OR e.L3Title = p.l3title)
+      AND e.ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
     GROUP BY e.ItemId, e.Channel
 ),
 
@@ -86,14 +83,14 @@ flagged AS (
 -- [C] DailySalesCount / SalesCount > 0.7
 cumulative_flagged AS (
     SELECT DISTINCT e.ItemId
-    FROM default.dm_Mandom e, params p
+    FROM default.dm_Wacoal e, params p
     WHERE e.Channel   = p.channel
       AND e.ScrapDate BETWEEN p.target_from AND p.target_to
       AND e.DailySalesCount > (SELECT min_count FROM params)
       AND toFloat64OrNull(e.SalesCount) IS NOT NULL
       AND e.SalesCount != 'null'
       AND e.DailySalesCount / toFloat64(e.SalesCount) > 0.7
-      AND (p.l3title = '' OR e.L3Title = p.l3title)
+      AND e.ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
 ),
 
 -- [D] SPIKE_JUMP: daily target >> avg baseline (non-target days)
@@ -103,13 +100,13 @@ baseline_stats AS (
         e.Channel,
         AVG(e.DailySalesCount)          AS avg_baseline,
         COUNT(DISTINCT e.ScrapDate)     AS baseline_days
-    FROM default.dm_Mandom e, params p
+    FROM default.dm_Wacoal e, params p
     WHERE e.Channel   = p.channel
       -- baseline = detection window MINUS target dates
       AND e.ScrapDate BETWEEN p.detection_from AND p.detection_to
       AND (e.ScrapDate < p.target_from OR e.ScrapDate > p.target_to)
       AND e.DailySalesCount > 0
-      AND (p.l3title = '' OR e.L3Title = p.l3title)
+      AND e.ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
     GROUP BY e.ItemId, e.Channel
     HAVING COUNT(DISTINCT e.ScrapDate) >= 2   -- perlu minimal 2 hari baseline
 ),
@@ -117,11 +114,11 @@ spike_jump_flagged AS (
     SELECT DISTINCT t.ItemId
     FROM (
         SELECT e.ItemId, e.Channel, e.DailySalesCount AS target_daily
-        FROM default.dm_Mandom e, params p
+        FROM default.dm_Wacoal e, params p
         WHERE e.Channel   = p.channel
           AND e.ScrapDate BETWEEN p.target_from AND p.target_to
           AND e.DailySalesCount > (SELECT min_count FROM params)
-          AND (p.l3title = '' OR e.L3Title = p.l3title)
+          AND e.ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
     ) t
     INNER JOIN baseline_stats b ON t.ItemId = b.ItemId AND t.Channel = b.Channel
     WHERE b.avg_baseline > 0
@@ -145,7 +142,7 @@ SELECT
            if(sj.ItemId IS NOT NULL, 'SPIKE_JUMP', NULL)
         )
     ) AS spike_flag
-FROM default.dm_Mandom e, params p
+FROM default.dm_Wacoal e, params p
 -- INNER JOIN: hanya item yang benar-benar ada di tabel pada target date
 INNER JOIN (
     SELECT ItemId FROM flagged WHERE spike_flag IN ('STALE_FROZEN_DAILY', 'NEW_ITEM_UNIFORM_COUNT')
@@ -158,25 +155,26 @@ LEFT JOIN spike_jump_flagged sj ON e.ItemId = sj.ItemId
 WHERE e.Channel   = p.channel
   AND e.ScrapDate BETWEEN p.target_from AND p.target_to
   AND e.DailySalesValue > 0
-  AND (p.l3title = '' OR e.L3Title = p.l3title)
+  AND e.ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
 ORDER BY gmv_jt DESC;
 
 
 -- ============================================================
 -- [STEP 2 - DELETE]
 -- ⬇️  Samakan nilai literal ini dengan params di STEP 1:
---    channel          : 'Tiktok'
---    l3title          : ''
---    target_from/to   : '2026-03-23'
---    detection window : '2026-03-16' s/d '2026-03-30'
+--    channel          : 'Tiktok x Tokopedia'
+--    shop_names       : 'wacoal_id', 'Indonesia Wacoal Official Shop'
+--    target_from/to   : '2026-04-11'
+--    detection window : '2026-03-28' s/d '2026-04-15'
+--    min_count        : 10
 --    spike_jump_mult  : 5
 -- ============================================================
-ALTER TABLE default.dm_Mandom
+ALTER TABLE default.dm_Wacoal
 DELETE WHERE
-    Channel   = 'Tiktok'
-    AND ScrapDate BETWEEN '2026-03-23' AND '2026-03-23'
+    Channel   = 'Tiktok x Tokopedia'
+    AND ScrapDate BETWEEN '2026-04-11' AND '2026-04-11'
     AND DailySalesValue > 0
-    -- AND L3Title = ''
+    AND ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
     AND ItemId IN (
         SELECT ItemId FROM (
             -- [A+B] Stale & New Uniform
@@ -189,31 +187,31 @@ DELETE WHERE
                     MAX(DailySalesCount)            AS max_daily_count,
                     if(COUNT(DISTINCT DailySalesCount) <= 2
                        AND COUNT(DISTINCT ScrapDate) >= 2, 1, 0) AS is_frozen_count
-                FROM default.dm_Mandom
-                WHERE Channel   = 'Tiktok'
-                  -- AND L3Title = ''
-                  AND ScrapDate BETWEEN '2026-03-16' AND '2026-03-30'
+                FROM default.dm_Wacoal
+                WHERE Channel   = 'Tiktok x Tokopedia'
+                  AND ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
+                  AND ScrapDate BETWEEN '2026-03-28' AND '2026-04-15'
                   AND DailySalesCount > 0
                 GROUP BY ItemId, Channel
             ) ss
             LEFT JOIN (
                 SELECT ItemId, Channel, MIN(ScrapDate) AS first_seen_ever
-                FROM default.dm_Mandom
-                WHERE Channel = 'Tiktok'
-                  -- AND L3Title = ''
+                FROM default.dm_Wacoal
+                WHERE Channel = 'Tiktok x Tokopedia'
+                  AND ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
                 GROUP BY ItemId, Channel
             ) ih ON ss.ItemId = ih.ItemId AND ss.Channel = ih.Channel
             WHERE (ss.is_frozen_count = 1 AND ss.max_daily_count > 10)
-               OR (ih.first_seen_ever >= '2026-03-16' AND ss.unique_daily_count_vals <= 2 AND ss.min_daily_count > 10)
+               OR (ih.first_seen_ever >= '2026-03-28' AND ss.unique_daily_count_vals <= 2 AND ss.min_daily_count > 10)
 
             UNION ALL
 
             -- [C] Cumulative SalesCount
             SELECT DISTINCT ItemId
-            FROM default.dm_Mandom
-            WHERE Channel   = 'Tiktok'
-              -- AND L3Title = ''
-              AND ScrapDate BETWEEN '2026-03-23' AND '2026-03-23'
+            FROM default.dm_Wacoal
+            WHERE Channel   = 'Tiktok x Tokopedia'
+              AND ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
+              AND ScrapDate BETWEEN '2026-04-11' AND '2026-04-11'
               AND DailySalesCount > 10
               AND toFloat64OrNull(SalesCount) IS NOT NULL
               AND SalesCount != 'null'
@@ -225,19 +223,19 @@ DELETE WHERE
             SELECT DISTINCT t.ItemId
             FROM (
                 SELECT ItemId, Channel, DailySalesCount AS target_daily
-                FROM default.dm_Mandom
-                WHERE Channel   = 'Tiktok'
-                  -- AND L3Title = ''
-                  AND ScrapDate BETWEEN '2026-03-23' AND '2026-03-23'
+                FROM default.dm_Wacoal
+                WHERE Channel   = 'Tiktok x Tokopedia'
+                  AND ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
+                  AND ScrapDate BETWEEN '2026-04-11' AND '2026-04-11'
                   AND DailySalesCount > 10
             ) t
             INNER JOIN (
                 SELECT ItemId, Channel, AVG(DailySalesCount) AS avg_baseline
-                FROM default.dm_Mandom
-                WHERE Channel   = 'Tiktok'
-                  -- AND L3Title = ''
-                  AND ScrapDate BETWEEN '2026-03-16' AND '2026-03-30'
-                  AND (ScrapDate < '2026-03-23' OR ScrapDate > '2026-03-23')
+                FROM default.dm_Wacoal
+                WHERE Channel   = 'Tiktok x Tokopedia'
+                  AND ShopName IN ('wacoal_id', 'Indonesia Wacoal Official Shop')
+                  AND ScrapDate BETWEEN '2026-03-28' AND '2026-04-15'
+                  AND (ScrapDate < '2026-04-11' OR ScrapDate > '2026-04-11')
                   AND DailySalesCount > 0
                 GROUP BY ItemId, Channel
                 HAVING COUNT(DISTINCT ScrapDate) >= 2
@@ -246,3 +244,4 @@ DELETE WHERE
               AND t.target_daily > b.avg_baseline * 5
         )
     );
+         

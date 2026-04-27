@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 # Config
 EXCEL_FILE = "advanced_brand_discovery_result.xlsx"
-TARGET_TABLE = "default.dm_Kopi_rpr_copy_al"
+TARGET_TABLE = "default.dm_Eyelash_al"
 DRY_RUN = False  # Set ke False untuk benar-benar meninju ClickHouse
 BATCH_SIZE = 100  # Jumlah mapping per 1 Query Mutasi
 
@@ -26,6 +26,7 @@ def get_db_client():
     return clickhouse_connect.get_client(
         host=os.getenv('CLICKHOUSE_HOST'),
         port=int(os.getenv('CLICKHOUSE_PORT', 8123)),
+        database=os.getenv('CLICKHOUSE_DB', 'default'),
         username=os.getenv('CLICKHOUSE_USER'),
         password=os.getenv('CLICKHOUSE_PASSWORD')
     )
@@ -42,28 +43,35 @@ def execute_injection():
     logger.info(f"Membaca {EXCEL_FILE}...")
     df = pd.read_excel(EXCEL_FILE)
     
-    # Filter hanya status yang relevan
-    valid_statuses = ["Auto-Matched (Synonym)", "Existing Brand"]
+    # Filter hanya status yang sudah tervalidasi dan punya Suggested Exact Brand terisi:
+    # - Existing Brand         : exact match ke master brand → Suggested Exact Brand pasti terisi
+    # - Auto-Matched (Synonym) : lolos Phonetic/Fuzz + dikonfirmasi LLM → Suggested Exact Brand pasti terisi
+    # Status lain (LLM Verified Brand, Rejected, dll) sengaja tidak diikutkan.
+    valid_statuses = ["Existing Brand", "Auto-Matched (Synonym)"]
     df_valid = df[df['Status'].isin(valid_statuses)].copy()
-    
+
+    status_counts = df_valid['Status'].value_counts().to_dict()
+    for status, count in status_counts.items():
+        logger.info(f"  [{status}] : {count} baris")
+
     mapping_rules = []
-    
+
     for idx, row in df_valid.iterrows():
         candidate = str(row['Candidate Name']).strip()
         suggested = str(row['Suggested Exact Brand']).strip()
-        
-        # Logika Fallback: Jika Suggested kosong/nan, gunakan Candidate Name dan kapitalisasi
+
+        # Kedua status di atas selalu punya Suggested Exact Brand terisi —
+        # tidak ada fallback ke Candidate Name untuk menghindari brand mentah masuk DB.
         if pd.isna(row['Suggested Exact Brand']) or suggested == "" or suggested.lower() == "nan":
-            final_brand = candidate.title()
-        else:
-            final_brand = suggested
-            
+            logger.warning(f"  [SKIP] '{candidate}' — Suggested Exact Brand kosong, baris dilewati.")
+            continue
+
         mapping_rules.append({
             "keyword": candidate,
-            "brand": final_brand
+            "brand": suggested
         })
-        
-    logger.info(f"Ditemukan {len(mapping_rules)} mapping valid dari Excel.")
+
+    logger.info(f"Total {len(mapping_rules)} mapping valid siap diinjeksi.")
     
     if len(mapping_rules) == 0:
         logger.info("Tidak ada data untuk diupdate.")
