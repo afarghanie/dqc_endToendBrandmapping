@@ -1,8 +1,8 @@
 """
 =======================================================================
-DQC Spike Detector — dm_Mandom
+DQC Spike Detector 
 =======================================================================
-Deteksi anomali spike di setiap Channel × L3Title untuk dm_Mandom
+Deteksi anomali spike di setiap Channel × L3Title untuk dm
 Periode: 1 Januari 2026 s/d 31 Maret 2026
 
 Flag anomali (sama seperti SQL reusable):
@@ -10,6 +10,10 @@ Flag anomali (sama seperti SQL reusable):
   [B] NEW_ITEM_UNIFORM_COUNT: Item baru + DailySalesCount seragam
   [C] CUMULATIVE_SALESCOUNT : DailySalesCount / SalesCount > 0.7
   [D] SPIKE_JUMP            : DailySalesCount pada hari spike > N× rata-rata baseline
+  [F] GHOST_REAPPEARANCE    : Item absen lama lalu muncul kembali; DailySalesCount =
+                               akumulasi penjualan selama gap (delta SalesCount)
+  [G] BRAND_NEW_SPIKE       : Item benar-benar baru (never seen before) yang muncul
+                               dengan DailySalesCount tinggi pada hari spike
 
 Output:
   - Summary tabel per Channel × L3Title (spike dates + GMV terdampak)
@@ -17,10 +21,10 @@ Output:
   - SQL DELETE statements siap pakai per spike date yang ditemukan
 
 Usage:
-  python dqc_spike_detector_mandom.py
+  python dqc_spike_detector.py
   Koneksi dibaca otomatis dari .env di direktori yang sama.
-  python dqc_spike_detector_mandom.py --channel "Tiktok x Tokopedia" --l3title "Cleanser"
-  python dqc_spike_detector_mandom.py --dry-run --output-dir ./output
+  python dqc_spike_detector.py --channel "Tiktok x Tokopedia" --l3title "Cleanser"
+  python dqc_spike_detector.py --dry-run --output-dir ./output
 =======================================================================
 """
 
@@ -54,11 +58,11 @@ DEFAULT_USER       = os.getenv("CLICKHOUSE_USER", "default")
 DEFAULT_PASSWORD   = os.getenv("CLICKHOUSE_PASSWORD", "")
 DEFAULT_DATABASE   = os.getenv("CLICKHOUSE_DB", "default")
 
-TABLE_NAME         = "dm_Electrolux"
-PERIOD_FROM        = date(2026, 4, 15) 
-PERIOD_TO          = date(2026, 4, 21)
+TABLE_NAME         = "dm_Multimedika"
+PERIOD_FROM        = date(2026, 4, 9) 
+PERIOD_TO          = date(2026, 4, 28)
 # Detection window radius di sekitar candidate spike date (hari)
-DETECTION_RADIUS   = 7   # baseline window = spike_date ± 7 hari (dikecualikan spike_date itu sendiri)
+DETECTION_RADIUS   = 28   # baseline window = spike_date ± 7 hari (dikecualikan spike_date itu sendiri)
 
 # Threshold parameter
 MIN_DAILY_COUNT    = 10   # DailySalesCount minimal agar dianggap signifikan
@@ -68,6 +72,11 @@ CUMULATIVE_RATIO   = 0.7  # [C] daily/total > ratio ini = spike
 FROZEN_MAX_UNIQUE  = 2    # [A/B] max nilai unik DailySalesCount agar dianggap frozen
 FROZEN_MIN_DAYS    = 2    # [A/B] min hari agar frozen check valid
 IQR_MULT           = 3.0  # [E] IQR-based outlier: daily > Q3 + IQR_MULT × IQR
+
+# Ghost / brand-new detection (flag F & G)
+GHOST_MIN_GAP_DAYS    = 30   # [F] gap minimum (hari) sejak scrape terakhir agar di-flag
+GHOST_DELTA_TOLERANCE = 2    # [F] toleransi |DailySalesCount - delta_SalesCount| yang masih dianggap match
+GHOST_NEW_MIN_COUNT   = 5    # [G] min DailySalesCount agar brand new item dianggap mencurigakan
 
 # ────────────────────────────────────────────────────────────────────
 # LOGGING
@@ -92,10 +101,16 @@ def get_client(host, port, user, password, database):
     )
 
 
-def fetch_raw_data(client, channel_filter=None, l3title_filter=None, brand_filter=None) -> pd.DataFrame:
+def fetch_raw_data(
+    client,
+    channel_filter=None,
+    l3title_filter=None,
+    brand_filter=None,
+    keyword_category_filter=None,
+) -> pd.DataFrame:
     """
-    Ambil semua baris dm_Mandom dalam periode yang relevan.
-    Data yang diambil: per (ItemId, ScrapDate, Channel, L3Title, Brand).
+    Ambil semua baris dm_AryaNoble dalam periode yang relevan.
+    Data yang diambil: per (ItemId, ScrapDate, Channel, L3Title, Brand, KeywordCategory).
     """
     log.info("Fetching raw data from ClickHouse ...")
 
@@ -103,9 +118,25 @@ def fetch_raw_data(client, channel_filter=None, l3title_filter=None, brand_filte
     fetch_from = PERIOD_FROM - timedelta(days=DETECTION_RADIUS)
     fetch_to   = PERIOD_TO   + timedelta(days=DETECTION_RADIUS)
 
-    channel_clause  = f"AND Channel = '{channel_filter}'"  if channel_filter  else ""
-    l3title_clause  = f"AND L3Title = '{l3title_filter}'"  if l3title_filter  else ""
-    brand_clause    = f"AND Brand = '{brand_filter}'"      if brand_filter    else ""
+    table_columns = {
+        str(row[0])
+        for row in client.query(f"DESCRIBE TABLE default.{TABLE_NAME}").result_rows
+    }
+    has_keyword_category = "KeywordCategory" in table_columns
+    keyword_category_select = "KeywordCategory" if has_keyword_category else "'' AS KeywordCategory"
+
+    channel_clause          = f"AND Channel = '{channel_filter}'"                   if channel_filter          else ""
+    l3title_clause          = f"AND L3Title = '{l3title_filter}'"                   if l3title_filter          else ""
+    brand_clause            = f"AND Brand = '{brand_filter}'"                       if brand_filter            else ""
+    keyword_category_clause = ""
+    if keyword_category_filter:
+        if has_keyword_category:
+            keyword_category_clause = f"AND KeywordCategory = '{keyword_category_filter}'"
+        else:
+            log.warning(
+                f"Table {TABLE_NAME} has no KeywordCategory column; "
+                "--keyword-category filter is ignored."
+            )
 
     query = f"""
         SELECT
@@ -114,6 +145,7 @@ def fetch_raw_data(client, channel_filter=None, l3title_filter=None, brand_filte
             Channel,
             L3Title,
             Brand,
+            {keyword_category_select},
             ShopName,
             ListingName,
             SalePrice,
@@ -127,11 +159,13 @@ def fetch_raw_data(client, channel_filter=None, l3title_filter=None, brand_filte
           {channel_clause}
           {l3title_clause}
           {brand_clause}
+          {keyword_category_clause}
     """
 
     result = client.query(query)
     cols = [
         "ItemId", "ScrapDate", "Channel", "L3Title", "Brand",
+        "KeywordCategory",
         "ShopName", "ListingName", "SalePrice", "SalesCount",
         "DailySalesCount", "DailySalesValue", "first_seen_ever",
     ]
@@ -155,16 +189,19 @@ def fetch_raw_data(client, channel_filter=None, l3title_filter=None, brand_filte
 
 class SpikeDetector:
     """
-    Menjalankan 5 flag anomali per (Channel, L3Title):
+    Menjalankan 7 flag anomali per (Channel, L3Title):
       [A] STALE_FROZEN_DAILY
       [B] NEW_ITEM_UNIFORM_COUNT
       [C] CUMULATIVE_SALESCOUNT
       [D] SPIKE_JUMP
-      [E] IQR_OUTLIER  (tambahan statistik)
+      [E] IQR_OUTLIER      (tambahan statistik — deteksi candidate date)
+      [F] GHOST_REAPPEARANCE  (item absen lama, DailySalesCount = akumulasi delta)
+      [G] BRAND_NEW_SPIKE     (item baru pertama kali muncul dengan count tinggi)
     """
 
-    def __init__(self, df: pd.DataFrame):
+    def __init__(self, df: pd.DataFrame, client=None):
         self.df = df
+        self.client = client   # diperlukan untuk stage 2 query [F] dan [G]
         self.flagged_rows: list[dict] = []
 
     # ── helper ──
@@ -254,33 +291,225 @@ class SpikeDetector:
         return set(flagged["ItemId"])
 
     # ────────────────────────────────────────────────────────────────
+    # [F] + [G] Stage-2 helper: query CH untuk last scrape sebelum
+    # spike_date, diluar window yang sudah di-fetch
+    # ────────────────────────────────────────────────────────────────
+    def _fetch_last_seen_before(
+        self,
+        channel: str,
+        spike_date: date,
+        item_ids: list[str],
+    ) -> dict[str, dict]:
+        """
+        Untuk setiap ItemId dalam item_ids, cari:
+          - last_seen  : MAX(ScrapDate) sebelum spike_date
+          - last_count : MAX(toInt64OrNull(SalesCount)) pada last_seen
+
+        Return: {item_id: {"last_seen": date, "last_count": int | None}}
+        Item yang tidak pernah muncul sebelumnya tidak akan ada di dict (→ kandidat [G]).
+        """
+        if not item_ids or self.client is None:
+            return {}
+
+        chunk_size = 500
+        result_map: dict[str, dict] = {}
+
+        for i in range(0, len(item_ids), chunk_size):
+            chunk = item_ids[i : i + chunk_size]
+            ids_literal = ", ".join(f"'{x}'" for x in chunk)
+            query = f"""
+                SELECT
+                    ItemId,
+                    MAX(ScrapDate)                        AS last_seen,
+                    argMax(toInt64OrNull(SalesCount), ScrapDate) AS last_count
+                FROM default.{TABLE_NAME}
+                WHERE Channel  = '{channel}'
+                  AND ScrapDate < '{spike_date}'
+                  AND ItemId IN ({ids_literal})
+                GROUP BY ItemId
+            """
+            try:
+                res = self.client.query(query)
+                for row in res.result_rows:
+                    item_id, last_seen, last_count = row
+                    result_map[str(item_id)] = {
+                        "last_seen":  last_seen if isinstance(last_seen, date) else last_seen,
+                        "last_count": last_count,
+                    }
+            except Exception as e:
+                log.warning(f"  [ghost] _fetch_last_seen_before error: {e}")
+
+        return result_map
+
+    # ────────────────────────────────────────────────────────────────
+    # [F] GHOST_REAPPEARANCE
+    # Item yang absen > GHOST_MIN_GAP_DAYS, lalu muncul kembali di
+    # spike_date dengan DailySalesCount ≈ akumulasi delta SalesCount
+    # selama gap tersebut.
+    # ────────────────────────────────────────────────────────────────
+    def _flag_ghost_reappearance(
+        self,
+        grp: pd.DataFrame,
+        target_date: date,
+        last_seen_map: dict[str, dict],
+        ghost_min_gap: int = GHOST_MIN_GAP_DAYS,
+        ghost_tolerance: int = GHOST_DELTA_TOLERANCE,
+    ) -> tuple[set[str], dict[str, int]]:
+        """
+        Return:
+          flagged_ids : set of ItemId yang lolos filter [F]
+          gap_days_map: {item_id: gap_days} untuk kolom output
+        """
+        day = grp[grp["ScrapDate"] == target_date].copy()
+        if day.empty or not last_seen_map:
+            return set(), {}
+
+        flagged: set[str] = set()
+        gap_days_map: dict[str, int] = {}
+
+        for _, row in day.iterrows():
+            item_id = str(row["ItemId"])
+            if item_id not in last_seen_map:
+                continue
+
+            info       = last_seen_map[item_id]
+            last_seen  = info["last_seen"]
+            last_count = info["last_count"]
+
+            # Hitung gap
+            if isinstance(last_seen, date):
+                gap = (target_date - last_seen).days
+            else:
+                try:
+                    gap = (target_date - pd.to_datetime(last_seen).date()).days
+                except Exception:
+                    continue
+
+            if gap <= ghost_min_gap:
+                continue
+
+            # Verifikasi delta: |DailySalesCount - (SalesCount_today - last_count)| <= tolerance
+            sales_count_today = pd.to_numeric(row["SalesCount"], errors="coerce")
+            if pd.notna(sales_count_today) and last_count is not None:
+                delta = sales_count_today - last_count
+                if abs(row["DailySalesCount"] - delta) <= ghost_tolerance:
+                    flagged.add(item_id)
+                    gap_days_map[item_id] = gap
+            else:
+                # Jika SalesCount tidak tersedia, pakai gap saja sebagai sinyal
+                if gap > ghost_min_gap:
+                    flagged.add(item_id)
+                    gap_days_map[item_id] = gap
+
+        return flagged, gap_days_map
+
+    # ────────────────────────────────────────────────────────────────
+    # [G] BRAND_NEW_SPIKE
+    # Item benar-benar baru (tidak pernah muncul di CH sebelumnya)
+    # yang muncul pada spike_date dengan DailySalesCount tinggi.
+    # ────────────────────────────────────────────────────────────────
+    def _flag_brand_new_spike(
+        self,
+        grp: pd.DataFrame,
+        target_date: date,
+        new_item_ids: set[str],
+        ghost_new_min_count: float = GHOST_NEW_MIN_COUNT,
+    ) -> set[str]:
+        """
+        Return: set of ItemId yang termasuk brand-new + DailySalesCount mencurigakan.
+        Kriteria tambahan: item hanya muncul pada target_date, tidak ada di hari setelahnya
+        dalam window (one-day appearance = lebih mencurigakan).
+        """
+        if not new_item_ids:
+            return set()
+
+        day = grp[
+            (grp["ScrapDate"] == target_date) &
+            (grp["ItemId"].astype(str).isin(new_item_ids)) &
+            (grp["DailySalesCount"] > ghost_new_min_count)
+        ]
+        if day.empty:
+            return set()
+
+        # Secondary check: tidak muncul di hari setelah target_date dalam window
+        next_day = target_date + timedelta(days=1)
+        seen_after = set(
+            grp[grp["ScrapDate"] >= next_day]["ItemId"].astype(str).unique()
+        )
+        flagged = set(day["ItemId"].astype(str)) - seen_after
+        return flagged
+
+    # ────────────────────────────────────────────────────────────────
     # [E] IQR_OUTLIER  (tambahan: aggregate harian per channel-l3title)
-    # Deteksi tanggal mana yang total GMV-nya outlier secara statistik
-    # di level Channel × L3Title (bukan item level)
+    # Deteksi tanggal mana yang total GMV-nya outlier dibandingkan
+    # kondisi NORMAL sebelum periode (pre-period baseline).
+    #
+    # Sebelumnya: IQR dihitung hanya dari tanggal dalam periode itu
+    # sendiri → kalau seluruh periode elevated (sustained spike),
+    # tidak ada outlier internal → gagal deteksi.
+    #
+    # Sekarang: IQR dihitung dari hari-hari SEBELUM PERIOD_FROM
+    # (pre-period = kondisi normal), lalu threshold-nya dipakai untuk
+    # menilai apakah hari-hari di dalam periode itu anomali.
+    # Fallback ke metode lama kalau pre-period data tidak cukup.
     # ────────────────────────────────────────────────────────────────
     def _find_spike_dates_iqr(self, grp: pd.DataFrame) -> list[date]:
         """
-        Temukan tanggal-tanggal yang total DailySalesValue (agregat) outlier.
+        Temukan tanggal-tanggal yang total DailySalesValue (agregat) outlier
+        dibandingkan baseline pre-period (hari-hari normal sebelum periode).
         Returns list of candidate spike dates dalam periode target.
         """
         daily_agg = grp.groupby("ScrapDate")["DailySalesValue"].sum().reset_index()
         daily_agg = daily_agg.sort_values("ScrapDate")
 
-        # Filter hanya periode target untuk evaluasi
-        daily_agg = daily_agg[
+        # ── Data periode target (yang akan dievaluasi) ──
+        period_data = daily_agg[
             (daily_agg["ScrapDate"] >= PERIOD_FROM) &
             (daily_agg["ScrapDate"] <= PERIOD_TO)
         ]
-
-        if len(daily_agg) < 7:
+        if len(period_data) < 3:
             return []
 
-        vals = daily_agg["DailySalesValue"].values
-        q1, q3 = np.percentile(vals, 25), np.percentile(vals, 75)
-        iqr    = q3 - q1
-        upper  = q3 + IQR_MULT * iqr
+        # ── Pre-period data sebagai baseline "kondisi normal" ──
+        # Ambil semua hari yang ter-fetch sebelum PERIOD_FROM
+        pre_period = daily_agg[daily_agg["ScrapDate"] < PERIOD_FROM]
 
-        spike_dates = daily_agg[daily_agg["DailySalesValue"] > upper]["ScrapDate"].tolist()
+        if len(pre_period) >= 7:
+            # ✅ Cukup data pre-period → pakai sebagai baseline normal
+            baseline_vals = pre_period["DailySalesValue"].values
+            q1, q3 = np.percentile(baseline_vals, 25), np.percentile(baseline_vals, 75)
+            iqr    = q3 - q1
+
+            if iqr == 0:
+                # Pre-period semua flat → pakai median + IQR_MULT × std sebagai fallback
+                upper = np.median(baseline_vals) * (1 + IQR_MULT * 0.1)
+            else:
+                upper = q3 + IQR_MULT * iqr
+
+            log.debug(
+                f"    [IQR] pre-period baseline: {len(pre_period)} hari, "
+                f"Q3={q3/1e6:.1f}jt, upper={upper/1e6:.1f}jt"
+            )
+            spike_dates = period_data[
+                period_data["DailySalesValue"] > upper
+            ]["ScrapDate"].tolist()
+
+        else:
+            # ⚠️ Pre-period tidak cukup → fallback ke metode lama (internal period IQR)
+            log.debug(
+                f"    [IQR] pre-period hanya {len(pre_period)} hari "
+                f"(< 7) → fallback ke within-period IQR"
+            )
+            vals = period_data["DailySalesValue"].values
+            if len(vals) < 7:
+                return []
+            q1, q3 = np.percentile(vals, 25), np.percentile(vals, 75)
+            iqr    = q3 - q1
+            upper  = q3 + IQR_MULT * iqr
+            spike_dates = period_data[
+                period_data["DailySalesValue"] > upper
+            ]["ScrapDate"].tolist()
+
         return spike_dates
 
     # ────────────────────────────────────────────────────────────────
@@ -296,10 +525,14 @@ class SpikeDetector:
             return []
 
         include_stale = getattr(self, "include_stale", False)
+        enable_ghost  = getattr(self, "enable_ghost", True)
+        ghost_min_gap = getattr(self, "ghost_min_gap", GHOST_MIN_GAP_DAYS)
+        ghost_tol     = getattr(self, "ghost_tolerance", GHOST_DELTA_TOLERANCE)
+        ghost_new_min = getattr(self, "ghost_new_min_count", GHOST_NEW_MIN_COUNT)
         results = []
 
         # ── Helper: tambahkan metadata kolom ke spike_items ──
-        def enrich(df, spike_date, win_from, win_to, flag_map):
+        def enrich(df, spike_date, win_from, win_to, flag_map, gap_days_map=None):
             df = df.copy()
             df["spike_flag"] = df["ItemId"].map(flag_map)
             df["spike_date"] = spike_date
@@ -311,6 +544,11 @@ class SpikeDetector:
                 (df["DailySalesCount"] / df["SalesCount"]).round(4),
                 np.nan
             )
+            # kolom gap_days: diisi hanya untuk flag F, None untuk yang lain
+            if gap_days_map:
+                df["gap_days"] = df["ItemId"].astype(str).map(gap_days_map)
+            else:
+                df["gap_days"] = None
             return df
 
         # ── Semua tanggal dalam periode ──
@@ -319,46 +557,100 @@ class SpikeDetector:
             (grp["ScrapDate"] <= PERIOD_TO)
         ]["ScrapDate"].unique())
 
-        # ── Candidate spike dates via IQR (untuk flag A & B) ──
-        candidate_dates = set(self._find_spike_dates_iqr(grp)) if include_stale else set()
+        # ── Candidate spike dates via IQR — selalu dijalankan (dipakai untuk stage 2) ──
+        iqr_candidate_dates = set(self._find_spike_dates_iqr(grp))
+        candidate_dates = iqr_candidate_dates if include_stale else set()
 
         processed_dates = set()
 
-        # --- Lapisan 1: candidate spike dates (A+B+C+D) ---
-        for spike_date in candidate_dates:
+        # ─────────────────────────────────────────────────────────
+        # Lapisan 1: candidate IQR spike dates (A+B+C+D + F+G)
+        # ─────────────────────────────────────────────────────────
+        for spike_date in iqr_candidate_dates:
             win_from, win_to = self._detection_window(spike_date)
 
             flag_C = self._flag_cumulative(grp, spike_date)
             flag_D = self._flag_spike_jump(grp, spike_date, win_from, win_to)
 
-            # Flag A & B hanya jika include_stale aktif
             flag_A = self._flag_stale_frozen(grp, win_from, win_to)     if include_stale else set()
             flag_B = self._flag_new_item_uniform(grp, win_from, win_to) if include_stale else set()
 
-            all_flagged = flag_A | flag_B | flag_C | flag_D
+            # ── Stage 2: ghost detection [F] dan [G] ──
+            flag_F: set[str] = set()
+            flag_G: set[str] = set()
+            gap_days_map: dict[str, int] = {}
+
+            if enable_ghost:
+                # Items di spike_date yang tidak ada dalam window sebelumnya
+                items_in_window_before = set(
+                    grp[
+                        (grp["ScrapDate"] >= win_from) &
+                        (grp["ScrapDate"] < spike_date)
+                    ]["ItemId"].astype(str)
+                )
+                items_on_spike = set(
+                    grp[grp["ScrapDate"] == spike_date]["ItemId"].astype(str)
+                )
+                candidate_ghost_ids = list(items_on_spike - items_in_window_before)
+
+                if candidate_ghost_ids and self.client:
+                    last_seen_map = self._fetch_last_seen_before(
+                        channel, spike_date, candidate_ghost_ids
+                    )
+                    ghost_candidates = {i for i in candidate_ghost_ids if i in last_seen_map}
+                    new_candidates   = {i for i in candidate_ghost_ids if i not in last_seen_map}
+
+                    flag_F, gap_days_map = self._flag_ghost_reappearance(
+                        grp, spike_date, last_seen_map,
+                        ghost_min_gap=ghost_min_gap,
+                        ghost_tolerance=ghost_tol,
+                    )
+                    flag_G = self._flag_brand_new_spike(
+                        grp, spike_date, new_candidates,
+                        ghost_new_min_count=ghost_new_min,
+                    )
+
+                    if flag_F:
+                        log.info(f"    → [F] GHOST_REAPPEARANCE: {len(flag_F)} items on {spike_date}")
+                    if flag_G:
+                        log.info(f"    → [G] BRAND_NEW_SPIKE: {len(flag_G)} items on {spike_date}")
+
+            all_flagged = flag_A | flag_B | flag_C | flag_D | flag_F | flag_G
             if not all_flagged:
                 processed_dates.add(spike_date)
                 continue
 
             spike_items = grp[
                 (grp["ScrapDate"] == spike_date) &
-                (grp["ItemId"].isin(all_flagged)) &
+                (grp["ItemId"].astype(str).isin(all_flagged)) &
                 (grp["DailySalesValue"] > 0)
             ].copy()
 
             if not spike_items.empty:
-                def assign_flag_abcd(item_id):
-                    if item_id in flag_A: return "STALE_FROZEN_DAILY"
-                    if item_id in flag_B: return "NEW_ITEM_UNIFORM_COUNT"
-                    if item_id in flag_C: return "CUMULATIVE_SALESCOUNT"
-                    if item_id in flag_D: return "SPIKE_JUMP"
+                def assign_flag(item_id, _fA=flag_A, _fB=flag_B, _fC=flag_C,
+                                _fD=flag_D, _fF=flag_F, _fG=flag_G):
+                    sid = str(item_id)
+                    if item_id in _fA or sid in _fA: return "STALE_FROZEN_DAILY"
+                    if item_id in _fB or sid in _fB: return "NEW_ITEM_UNIFORM_COUNT"
+                    if item_id in _fC or sid in _fC: return "CUMULATIVE_SALESCOUNT"
+                    if item_id in _fD or sid in _fD: return "SPIKE_JUMP"
+                    if sid in _fF:                   return "GHOST_REAPPEARANCE"
+                    if sid in _fG:                   return "BRAND_NEW_SPIKE"
                     return "UNKNOWN"
-                results.extend(enrich(spike_items, spike_date, win_from, win_to,
-                                      {i: assign_flag_abcd(i) for i in spike_items["ItemId"]}).to_dict("records"))
+
+                flag_map = {i: assign_flag(i) for i in spike_items["ItemId"]}
+                results.extend(
+                    enrich(spike_items, spike_date, win_from, win_to, flag_map, gap_days_map)
+                    .to_dict("records")
+                )
 
             processed_dates.add(spike_date)
 
-        # --- Lapisan 2: semua tanggal, hanya flag C & D ---
+        # ─────────────────────────────────────────────────────────
+        # Lapisan 2: semua tanggal, hanya flag C & D
+        # (F & G tidak dijalankan di lapisan ini karena tidak ada
+        #  IQR signal — aggregate tidak anomali)
+        # ─────────────────────────────────────────────────────────
         for target_date in all_dates:
             if target_date in processed_dates:
                 continue
@@ -386,8 +678,21 @@ class SpikeDetector:
 
         return results
 
-    def run_all(self, channels=None, l3titles=None, include_stale=False) -> pd.DataFrame:
-        self.include_stale = include_stale
+    def run_all(
+        self,
+        channels=None,
+        l3titles=None,
+        include_stale=False,
+        enable_ghost=True,
+        ghost_min_gap=GHOST_MIN_GAP_DAYS,
+        ghost_tolerance=GHOST_DELTA_TOLERANCE,
+        ghost_new_min_count=GHOST_NEW_MIN_COUNT,
+    ) -> pd.DataFrame:
+        self.include_stale      = include_stale
+        self.enable_ghost       = enable_ghost
+        self.ghost_min_gap      = ghost_min_gap
+        self.ghost_tolerance    = ghost_tolerance
+        self.ghost_new_min_count = ghost_new_min_count
         groups = self.df[["Channel", "L3Title"]].drop_duplicates()
         if channels:
             groups = groups[groups["Channel"].isin(channels)]
@@ -477,10 +782,10 @@ def save_excel(result_df: pd.DataFrame, output_dir: str) -> str:
 
     # ── Sheet 2: Detail
     detail_cols = [
-        "spike_date", "Channel", "L3Title", "Brand", "spike_flag",
+        "spike_date", "Channel", "L3Title", "KeywordCategory", "Brand", "spike_flag",
         "ItemId", "ShopName", "ListingName",
         "SalePrice", "DailySalesCount", "gmv_jt", "daily_to_total_ratio",
-        "win_from", "win_to",
+        "gap_days", "win_from", "win_to",
     ]
     detail_df = (
         result_df[[c for c in detail_cols if c in result_df.columns]]
@@ -492,6 +797,7 @@ def save_excel(result_df: pd.DataFrame, output_dir: str) -> str:
             "spike_flag":           "Flag",
             "gmv_jt":               "GMV (jt)",
             "daily_to_total_ratio": "Daily/Total Ratio",
+            "gap_days":             "Gap Hari (F)",
             "win_from":             "Window From",
             "win_to":               "Window To",
         })
@@ -744,9 +1050,11 @@ def parse_args():
     parser.add_argument("--port",       type=int, default=DEFAULT_PORT)
     parser.add_argument("--user",       default=DEFAULT_USER)
     parser.add_argument("--password",   default=DEFAULT_PASSWORD)
-    parser.add_argument("--channel",    help="Filter ke satu Channel tertentu")
-    parser.add_argument("--l3title",    help="Filter ke satu L3Title tertentu")
-    parser.add_argument("--brand",      help="Filter ke satu Brand tertentu (opsional)")
+    parser.add_argument("--channel",           help="Filter ke satu Channel tertentu")
+    parser.add_argument("--l3title",           help="Filter ke satu L3Title tertentu")
+    parser.add_argument("--brand",             help="Filter ke satu Brand tertentu (opsional)")
+    parser.add_argument("--keyword-category",  dest="keyword_category",
+                        help="Filter ke satu KeywordCategory tertentu (contoh: 'Hair Restore')")
     parser.add_argument("--spike-mult", type=float, default=SPIKE_JUMP_MULT,
                         help=f"SPIKE_JUMP multiplier (default: {SPIKE_JUMP_MULT})")
     parser.add_argument("--iqr-mult",   type=float, default=IQR_MULT,
@@ -762,6 +1070,15 @@ def parse_args():
     parser.add_argument("--include-stale", action="store_true",
                         help="Aktifkan flag [A] STALE_FROZEN_DAILY dan [B] NEW_ITEM_UNIFORM_COUNT "
                              "(default: nonaktif, hanya C dan D yang dipakai)")
+    parser.add_argument("--no-ghost", action="store_true",
+                        help="Nonaktifkan flag [F] GHOST_REAPPEARANCE dan [G] BRAND_NEW_SPIKE "
+                             "(default: aktif)")
+    parser.add_argument("--ghost-gap", type=int, default=GHOST_MIN_GAP_DAYS,
+                        help=f"[F] Gap minimum hari sejak scrape terakhir (default: {GHOST_MIN_GAP_DAYS})")
+    parser.add_argument("--ghost-tolerance", type=int, default=GHOST_DELTA_TOLERANCE,
+                        help=f"[F] Toleransi |DailySalesCount - delta_SalesCount| (default: {GHOST_DELTA_TOLERANCE})")
+    parser.add_argument("--ghost-min-count", type=float, default=GHOST_NEW_MIN_COUNT,
+                        help=f"[G] Min DailySalesCount agar brand new item di-flag (default: {GHOST_NEW_MIN_COUNT})")
     parser.add_argument("--dry-run", action="store_true",
                         help="Hanya print summary, tidak simpan file")
     parser.add_argument("--execute",  action="store_true",
@@ -782,14 +1099,20 @@ def main():
     IQR_MULT         = args.iqr_mult
     MIN_DAILY_COUNT  = args.min_count
 
+    enable_ghost = not args.no_ghost
+
     log.info("=" * 60)
     log.info(f"DQC Spike Detector — {TABLE_NAME}")
     log.info(f"Periode  : {PERIOD_FROM} s/d {PERIOD_TO}")
     log.info(f"Channel  : {args.channel or 'ALL'}")
     log.info(f"L3Title  : {args.l3title or 'ALL'}")
     log.info(f"Brand    : {args.brand or 'ALL'}")
+    log.info(f"KeyCat   : {args.keyword_category or 'ALL'}")
     log.info(f"Params   : spike_mult={SPIKE_JUMP_MULT}×, iqr_mult={IQR_MULT}×, "
              f"min_count={MIN_DAILY_COUNT}")
+    log.info(f"Ghost    : {'ENABLED' if enable_ghost else 'DISABLED'}"
+             + (f" (gap≥{args.ghost_gap}d, tol={args.ghost_tolerance}, "
+                f"new_min={args.ghost_min_count})" if enable_ghost else ""))
     log.info("=" * 60)
 
     # Connect
@@ -802,6 +1125,7 @@ def main():
         channel_filter=args.channel,
         l3title_filter=args.l3title,
         brand_filter=args.brand,
+        keyword_category_filter=args.keyword_category,
     )
 
     if df.empty:
@@ -810,11 +1134,15 @@ def main():
 
     # Detect
     log.info("Running anomaly detection ...")
-    detector   = SpikeDetector(df)
-    result_df  = detector.run_all(
+    detector  = SpikeDetector(df, client=client)
+    result_df = detector.run_all(
         channels=[args.channel] if args.channel else None,
         l3titles=[args.l3title] if args.l3title else None,
         include_stale=args.include_stale,
+        enable_ghost=enable_ghost,
+        ghost_min_gap=args.ghost_gap,
+        ghost_tolerance=args.ghost_tolerance,
+        ghost_new_min_count=args.ghost_min_count,
     )
 
     # Pareto filter
