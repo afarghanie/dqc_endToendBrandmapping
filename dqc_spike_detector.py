@@ -58,11 +58,11 @@ DEFAULT_USER       = os.getenv("CLICKHOUSE_USER", "default")
 DEFAULT_PASSWORD   = os.getenv("CLICKHOUSE_PASSWORD", "")
 DEFAULT_DATABASE   = os.getenv("CLICKHOUSE_DB", "default")
 
-TABLE_NAME         = "dm_Multimedika"
-PERIOD_FROM        = date(2026, 4, 9) 
-PERIOD_TO          = date(2026, 4, 28)
+TABLE_NAME         = "dm_Msglow"
+PERIOD_FROM        = date(2026, 4, 3) 
+PERIOD_TO          = date(2026, 4, 30)
 # Detection window radius di sekitar candidate spike date (hari)
-DETECTION_RADIUS   = 28   # baseline window = spike_date ± 7 hari (dikecualikan spike_date itu sendiri)
+DETECTION_RADIUS   =  120 # baseline window = spike_date ± 7 hari (dikecualikan spike_date itu sendiri)
 
 # Threshold parameter
 MIN_DAILY_COUNT    = 10   # DailySalesCount minimal agar dianggap signifikan
@@ -902,45 +902,18 @@ def generate_sql_deletes(result_df: pd.DataFrame, output_dir: str) -> str:
     return path
 
 
-def apply_pareto_filter(
+def apply_min_gmv_filter(
     result_df: pd.DataFrame,
-    pareto_pct: float = 80.0,
     min_gmv_jt: float = 0.5,
 ) -> pd.DataFrame:
     """
-    Filter item yang benar-benar berkontribusi pada spike:
-      1. Hapus item dengan GMV < min_gmv_jt (noise kecil)
-      2. Per (spike_date, Channel, L3Title): sort by GMV desc,
-         ambil item sampai kumulatif GMV-nya >= pareto_pct% dari
-         total flagged GMV grup tersebut.
+    Buang item dengan GMV < min_gmv_jt (noise trivial).
+    Semua item yang lolos flag deteksi tetap dipertahankan —
+    tidak ada pemotongan berbasis cumulative GMV (Pareto).
     """
     if result_df.empty:
         return result_df
-
-    # Step 1: buang item GMV terlalu kecil
-    df = result_df[result_df["gmv_jt"] >= min_gmv_jt].copy()
-    if df.empty:
-        return df
-
-    kept = []
-    group_keys = ["spike_date", "Channel", "L3Title"]
-
-    for keys, grp in df.groupby(group_keys):
-        grp_sorted   = grp.sort_values("gmv_jt", ascending=False)
-        total_gmv    = grp_sorted["gmv_jt"].sum()
-        cumulative   = 0.0
-        cutoff_ratio = pareto_pct / 100.0
-
-        for _, item_row in grp_sorted.iterrows():
-            kept.append(item_row)
-            cumulative += item_row["gmv_jt"]
-            if cumulative / total_gmv >= cutoff_ratio:
-                break
-
-    if not kept:
-        return pd.DataFrame()
-
-    return pd.DataFrame(kept).reset_index(drop=True)
+    return result_df[result_df["gmv_jt"] >= min_gmv_jt].copy()
 
 
 def interactive_delete(result_df: pd.DataFrame, client, yes_all: bool = False):
@@ -1063,8 +1036,6 @@ def parse_args():
                         help=f"Min DailySalesCount signifikan (default: {MIN_DAILY_COUNT})")
     parser.add_argument("--output-dir", default=str(Path(__file__).parent / "csv"),
                         help="Direktori output CSV & SQL (default: ./csv)")
-    parser.add_argument("--pareto-pct", type=float, default=80.0,
-                        help="Cumulative GMV %% yang dicakup (Pareto filter, default: 80)")
     parser.add_argument("--min-gmv",    type=float, default=0.5,
                         help="Minimum GMV (jt) per item agar masuk output (default: 0.5)")
     parser.add_argument("--include-stale", action="store_true",
@@ -1145,16 +1116,11 @@ def main():
         ghost_new_min_count=args.ghost_min_count,
     )
 
-    # Pareto filter
+    # Min GMV filter (buang noise trivial)
     before = len(result_df)
-    result_df = apply_pareto_filter(
-        result_df,
-        pareto_pct=args.pareto_pct,
-        min_gmv_jt=args.min_gmv,
-    )
+    result_df = apply_min_gmv_filter(result_df, min_gmv_jt=args.min_gmv)
     after = len(result_df)
-    log.info(f"Pareto filter ({args.pareto_pct}% cumulative GMV, min {args.min_gmv} jt): "
-             f"{before:,} → {after:,} rows")
+    log.info(f"Min GMV filter (>= {args.min_gmv} jt): {before:,} → {after:,} rows")
 
     # Report
     print_summary(result_df)
